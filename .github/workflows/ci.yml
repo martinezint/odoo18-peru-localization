@@ -98,7 +98,7 @@ jobs:
           USER: odoo
           PASSWORD: odoo
         run: |
-          ADDONS_PATH=/github/workspace/l10n-peru-ce/addons,/github/workspace/l10n-peru-ce/oca-deps,/usr/lib/python3/dist-packages/odoo/addons
+          ADDONS_PATH="$GITHUB_WORKSPACE/l10n-peru-ce/addons,$GITHUB_WORKSPACE/l10n-peru-ce/oca-deps,/usr/lib/python3/dist-packages/odoo/addons"
           odoo \
             -d test_ci \
             --addons-path="$ADDONS_PATH" \
