@@ -20,10 +20,12 @@
         "python": ["httpx", "lxml"],
     },
     "data": [
+        "security/ir.model.access.csv",
         "data/ir_cron_data.xml",
         "views/res_company_views.xml",
         "views/l10n_pe_edi_document_views.xml",
         "views/stock_picking_views.xml",
+        "views/gre_transportista_views.xml",
     ],
     "demo": [],
     "installable": True,

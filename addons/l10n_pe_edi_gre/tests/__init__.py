@@ -7,4 +7,5 @@ from . import (
     test_gre_rest_client,
     test_stock_picking_gre,
     test_token_cache,
+    test_transportista_ubl,
 )

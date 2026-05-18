@@ -16,13 +16,13 @@
     </field>
   </record>
 
-  <!-- Partner: checkbox 'Sujeto a retención IGV' -->
+  <!-- Partner: checkbox 'Sujeto a retención IGV' tras el VAT -->
   <record id="view_partner_l10n_pe_retention_form" model="ir.ui.view">
     <field name="name">res.partner.form.l10n_pe_retention</field>
     <field name="model">res.partner</field>
-    <field name="inherit_id" ref="account.view_partner_property_form"/>
+    <field name="inherit_id" ref="base.view_partner_form"/>
     <field name="arch" type="xml">
-      <xpath expr="//group[@name='accounting']" position="inside">
+      <xpath expr="//field[@name='vat']" position="after">
         <field name="l10n_pe_retention_applies"/>
       </xpath>
     </field>
@@ -34,15 +34,13 @@
     <field name="model">res.company</field>
     <field name="inherit_id" ref="base.view_company_form"/>
     <field name="arch" type="xml">
-      <xpath expr="//notebook" position="inside">
-        <page string="Retención IGV (Perú)">
-          <group>
-            <field name="l10n_pe_retention_threshold"/>
-            <field name="l10n_pe_retention_rate"/>
-            <field name="l10n_pe_retention_serie"/>
-            <field name="l10n_pe_retention_journal_id" domain="[('type','=','general'),('company_id','=',id)]"/>
-          </group>
-        </page>
+      <xpath expr="//sheet" position="inside">
+        <group string="Retención IGV (Perú)">
+          <field name="l10n_pe_retention_threshold"/>
+          <field name="l10n_pe_retention_rate"/>
+          <field name="l10n_pe_retention_serie"/>
+          <field name="l10n_pe_retention_journal_id" domain="[('type','=','general'),('company_id','=',id)]"/>
+        </group>
       </xpath>
     </field>
   </record>
