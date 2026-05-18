@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_l10n_pe_sire_period_tree" model="ir.ui.view">
+        <field name="name">l10n.pe.sire.period.list</field>
+        <field name="model">l10n.pe.sire.period</field>
+        <field name="arch" type="xml">
+            <list string="Períodos SIRE">
+                <field name="periodo"/>
+                <field name="libro"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('requested', 'ready')"
+                       decoration-success="state in ('downloaded', 'accepted')"
+                       decoration-danger="state == 'error'"/>
+                <field name="ticket"/>
+                <field name="ticket_last_check_at" optional="hide"/>
+                <field name="downloaded_at" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_l10n_pe_sire_period_form" model="ir.ui.view">
+        <field name="name">l10n.pe.sire.period.form</field>
+        <field name="model">l10n.pe.sire.period</field>
+        <field name="arch" type="xml">
+            <form string="Período SIRE">
+                <header>
+                    <button name="action_request_propuesta"
+                            type="object"
+                            string="Solicitar propuesta"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_check_ticket"
+                            type="object"
+                            string="Consultar estado"
+                            class="oe_highlight"
+                            invisible="state != 'requested'"/>
+                    <button name="action_download"
+                            type="object"
+                            string="Descargar archivo"
+                            class="oe_highlight"
+                            invisible="state != 'ready'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,requested,ready,downloaded"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="periodo"/>
+                            <field name="libro"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Ticket SUNAT" invisible="not ticket">
+                            <field name="ticket"/>
+                            <field name="ticket_requested_at"/>
+                            <field name="ticket_last_check_at"/>
+                            <field name="ticket_cod_estado"/>
+                            <field name="ticket_descripcion"/>
+                        </group>
+                    </group>
+                    <group string="Archivo descargado" invisible="not file_data">
+                        <field name="file_name"/>
+                        <field name="file_data" filename="file_name"/>
+                        <field name="downloaded_at"/>
+                    </group>
+                    <group string="Error" invisible="not error_message">
+                        <field name="error_message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_l10n_pe_sire_period" model="ir.actions.act_window">
+        <field name="name">SIRE - Períodos</field>
+        <field name="res_model">l10n.pe.sire.period</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_l10n_pe_sire_period"
+              name="SIRE (Perú)"
+              parent="account.menu_finance_reports"
+              action="action_l10n_pe_sire_period"
+              sequence="210"/>
+
+</odoo>
