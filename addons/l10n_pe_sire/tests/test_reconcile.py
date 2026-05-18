@@ -81,7 +81,7 @@ class TestSireReconcile(TransactionCase):
         bill = self._create_posted_bill(serie_num="F001-100", total=118.0)
         prop = self._make_proposal_line(serie="F001", number="100", total=118.0)
         Move = self.env["account.move"]
-        results = Move._l10n_pe_sire_reconcile_proposal([prop], "202604")
+        results = Move._l10n_pe_sire_reconcile_proposal([prop], "202604", company=self.company)
         self.assertEqual(results["matched"], 1)
         self.assertEqual(results["discrepancy"], 0)
         bill.invalidate_recordset()
@@ -91,7 +91,7 @@ class TestSireReconcile(TransactionCase):
         bill = self._create_posted_bill(serie_num="F001-101", total=200.0)
         prop = self._make_proposal_line(serie="F001", number="101", total=180.0)
         Move = self.env["account.move"]
-        results = Move._l10n_pe_sire_reconcile_proposal([prop], "202604")
+        results = Move._l10n_pe_sire_reconcile_proposal([prop], "202604", company=self.company)
         self.assertEqual(results["discrepancy"], 1)
         self.assertEqual(results["matched"], 0)
         bill.invalidate_recordset()
@@ -101,7 +101,7 @@ class TestSireReconcile(TransactionCase):
     def test_missing_in_odoo(self):
         prop = self._make_proposal_line(serie="F001", number="999", total=500.0)
         Move = self.env["account.move"]
-        results = Move._l10n_pe_sire_reconcile_proposal([prop], "202604")
+        results = Move._l10n_pe_sire_reconcile_proposal([prop], "202604", company=self.company)
         self.assertEqual(results["missing_in_odoo"], 1)
         self.assertEqual(len(results["unmatched_proposals"]), 1)
         self.assertEqual(results["unmatched_proposals"][0]["serie_number"], "F001-999")
@@ -110,7 +110,7 @@ class TestSireReconcile(TransactionCase):
         bill = self._create_posted_bill(serie_num="F001-200", total=300.0)
         # Propuesta vacía → el bill queda 'not_matched'
         Move = self.env["account.move"]
-        results = Move._l10n_pe_sire_reconcile_proposal([], "202604")
+        results = Move._l10n_pe_sire_reconcile_proposal([], "202604", company=self.company)
         bill.invalidate_recordset()
         self.assertEqual(bill.l10n_pe_sire_match_status, "not_matched")
         self.assertGreaterEqual(len(results["odoo_only"]), 1)

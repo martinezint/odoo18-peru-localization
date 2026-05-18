@@ -3,6 +3,7 @@
 
 from . import (
     test_filename,
+    test_ple_3_1,
     test_ple_5_1,
     test_ple_6_1,
     test_ple_8_1,

@@ -97,6 +97,13 @@ class TestPleWizard(TransactionCase):
         # Mayor agregado: al menos 1 cuenta con movimiento (la venta de setUpClass)
         self.assertGreaterEqual(wiz.line_count, 1)
 
+    def test_generate_inventario_3_1_anual_filename(self):
+        wiz = self._make_wizard(libro="3_1")
+        wiz.action_generate()
+        # 3.1 es anual: filename debe llevar YYYY1200 (mes=12, día=00)
+        self.assertIn("030100", wiz.file_name)
+        self.assertIn("20261200", wiz.file_name)
+
     def test_invalid_period_raises(self):
         wiz = self._make_wizard(period="2026")
         with self.assertRaisesRegex(UserError, "YYYYMM"):

@@ -40,7 +40,7 @@ class AccountMove(models.Model):
     )
 
     def _l10n_pe_sire_reconcile_proposal(
-        self, lines, period_yyyymm: str, tolerance: Decimal = Decimal("0.01")
+        self, lines, period_yyyymm: str, tolerance: Decimal = Decimal("0.01"), company=None
     ) -> dict:
         """Compara una lista de RceProposalLine vs los in_invoice del período.
 
@@ -48,12 +48,15 @@ class AccountMove(models.Model):
         encaje por (vat del proveedor, serie-número, fecha emisión) y compara
         importes. Marca los moves matcheados y devuelve un resumen.
 
+        Args:
+            company: si se pasa, se usa para filtrar; si no, self.env.company.
+
         Returns:
             dict {'matched': N, 'discrepancy': N, 'missing_in_odoo': N,
                   'unmatched_proposals': [...], 'odoo_only': [...]}
         """
         Move = self.env["account.move"]
-        company = self.env.company
+        company = company or self.env.company
         results = {
             "matched": 0,
             "discrepancy": 0,

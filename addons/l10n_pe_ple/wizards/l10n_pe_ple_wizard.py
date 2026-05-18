@@ -7,6 +7,7 @@ import io
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
+from ..services.ple_3_1_inventario import Ple3_1Generator
 from ..services.ple_5_1_diario import Ple5_1Generator
 from ..services.ple_6_1_mayor import Ple6_1Generator
 from ..services.ple_8_1_compras import Ple8_1Generator
@@ -14,8 +15,10 @@ from ..services.ple_14_1_ventas import Ple14_1Generator
 from ..services.ple_filename import (
     LIBRO_COMPRAS_8_1,
     LIBRO_DIARIO_5_1,
+    LIBRO_INV_BAL_3_1,
     LIBRO_MAYOR_6_1,
     LIBRO_VENTAS_14_1,
+    PERIODICITY_ANNUAL,
     build_ple_filename,
 )
 
@@ -24,15 +27,17 @@ LIBRO_SELECTION = [
     ("8_1", "8.1 — Registro de Compras"),
     ("5_1", "5.1 — Libro Diario"),
     ("6_1", "6.1 — Libro Mayor"),
+    ("3_1", "3.1 — Inventarios y Balances (anual)"),
 ]
 
 
-# Mapeo libro → (Generator class, código SUNAT)
+# Mapeo libro → (Generator class, código SUNAT, periodicidad)
 _LIBRO_DISPATCH = {
-    "14_1": (Ple14_1Generator, LIBRO_VENTAS_14_1),
-    "8_1": (Ple8_1Generator, LIBRO_COMPRAS_8_1),
-    "5_1": (Ple5_1Generator, LIBRO_DIARIO_5_1),
-    "6_1": (Ple6_1Generator, LIBRO_MAYOR_6_1),
+    "14_1": (Ple14_1Generator, LIBRO_VENTAS_14_1, "monthly"),
+    "8_1": (Ple8_1Generator, LIBRO_COMPRAS_8_1, "monthly"),
+    "5_1": (Ple5_1Generator, LIBRO_DIARIO_5_1, "monthly"),
+    "6_1": (Ple6_1Generator, LIBRO_MAYOR_6_1, "monthly"),
+    "3_1": (Ple3_1Generator, LIBRO_INV_BAL_3_1, PERIODICITY_ANNUAL),
 }
 
 
@@ -75,7 +80,7 @@ class L10nPePleWizard(models.TransientModel):
         if self.libro not in _LIBRO_DISPATCH:
             raise UserError(_("Libro %s no soportado.") % self.libro)
 
-        GeneratorCls, libro_code = _LIBRO_DISPATCH[self.libro]
+        GeneratorCls, libro_code, periodicity = _LIBRO_DISPATCH[self.libro]
         gen = GeneratorCls(self.env, self.company_id, self.period_yyyymm)
 
         buf = io.BytesIO()
@@ -87,6 +92,7 @@ class L10nPePleWizard(models.TransientModel):
             libro_code=libro_code,
             has_movements=count > 0,
             has_info=count > 0,
+            periodicity=periodicity,
         )
         self.write(
             {

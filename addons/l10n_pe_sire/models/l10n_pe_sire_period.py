@@ -226,10 +226,8 @@ class L10nPeSirePeriod(models.Model):
                 raise ValidationError(_("No hay archivo de propuesta descargado."))
             content = base64.b64decode(rec.file_data)
             lines = parse_rce_txt(content)
-            results = (
-                rec.env["account.move"]
-                .with_company(rec.company_id)
-                ._l10n_pe_sire_reconcile_proposal(lines, rec.periodo)
+            results = rec.env["account.move"]._l10n_pe_sire_reconcile_proposal(
+                lines, rec.periodo, company=rec.company_id
             )
             rec.reconcile_summary = json.dumps(results, indent=2, ensure_ascii=False)
         return True
