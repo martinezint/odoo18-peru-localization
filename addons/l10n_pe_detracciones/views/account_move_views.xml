@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_account_move_form_l10n_pe_detraccion" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.pe.detraccion</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@id='other_tab']" position="inside">
+                <group string="Detracción (SPOT)"
+                       invisible="not l10n_pe_detraccion_has_application">
+                    <field name="l10n_pe_detraccion_has_application" invisible="1"/>
+                    <field name="l10n_pe_detraccion_code_id" options="{'no_create': True}"/>
+                    <field name="l10n_pe_detraccion_amount"/>
+                    <field name="l10n_pe_detraccion_constancia"/>
+                    <field name="l10n_pe_detraccion_date"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
