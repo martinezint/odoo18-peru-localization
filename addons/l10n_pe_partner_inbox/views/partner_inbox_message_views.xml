@@ -54,7 +54,7 @@
   <menuitem
       id="menu_partner_inbox_message"
       name="Bandeja XML proveedores"
-      parent="account.menu_finance_entries_actions"
+      parent="account.menu_finance_entries"
       action="action_partner_inbox_message"
       sequence="50"/>
 </odoo>
