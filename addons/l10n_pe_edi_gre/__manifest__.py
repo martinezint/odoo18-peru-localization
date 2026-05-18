@@ -1,27 +1,28 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 {
-    "name": "Peru - GRE 2.0: infraestructura REST + OAuth2",
-    "summary": "Cliente REST + OAuth2 client_credentials a SUNAT GRE 2.0 "
-               "(api-cpe.sunat.gob.pe). Token cache con refresh automático. "
-               "Métodos POST /comprobantes/<numDoc> y GET /envios/<ticket>. "
-               "Soporta Remitente (09) y Transportista (31). "
-               "v1: sólo transport. UBL builder de DespatchAdvice + integración "
-               "stock.picking vendrán en módulo siguiente.",
-    "version": "18.0.0.1.0",
+    "name": "Peru - GRE 2.0: REST + UBL DespatchAdvice (Remitente)",
+    "summary": "Cliente REST + OAuth2 SUNAT GRE 2.0 + UBL DespatchAdvice 2.1 "
+               "para GRE Remitente desde stock.picking. Token cache con "
+               "refresh. Métodos send_gre, get_status, download_file. "
+               "v1: infra REST + builder GRE Remitente. GRE Transportista "
+               "(31) usa la misma infra REST; UBL queda para v2.",
+    "version": "18.0.0.2.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",
     "website": "https://github.com/your-org/odoo-l10n-peru-ce",
     "license": "AGPL-3",
     "depends": [
-        "l10n_pe_edi",  # reusa l10n.pe.edi.document como base
+        "l10n_pe_edi",
+        "stock",
     ],
     "external_dependencies": {
-        "python": ["httpx"],
+        "python": ["httpx", "lxml"],
     },
     "data": [
         "views/res_company_views.xml",
         "views/l10n_pe_edi_document_views.xml",
+        "views/stock_picking_views.xml",
     ],
     "demo": [],
     "installable": True,

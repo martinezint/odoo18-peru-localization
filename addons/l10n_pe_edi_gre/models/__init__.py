@@ -3,3 +3,4 @@
 
 from . import res_company
 from . import l10n_pe_edi_document
+from . import stock_picking
