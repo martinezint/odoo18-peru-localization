@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+
+    Extiende el reporte de factura del core para añadir el QR SUNAT y la
+    leyenda 'Representación impresa de la <TipoDoc> Electrónica' que exige
+    RS 097-2012 cuando el move tiene un l10n.pe.edi.document asociado.
+-->
+<odoo>
+
+    <template id="report_invoice_l10n_pe_qr"
+              inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@id='total']" position="after">
+            <div class="row mt-4" t-if="o.l10n_pe_edi_document_id">
+                <div class="col-4 text-center">
+                    <img t-attf-src="data:image/png;base64,#{o._l10n_pe_edi_qr_png_base64()}"
+                         style="max-width: 150px; max-height: 150px;"
+                         alt="QR SUNAT"/>
+                </div>
+                <div class="col-8">
+                    <p class="text-muted mb-1" style="font-size: 0.85em;">
+                        <strong>Representación impresa de la
+                            <t t-if="o.move_type == 'out_refund'">Nota de Crédito Electrónica</t>
+                            <t t-else="">Factura Electrónica</t>
+                        </strong>
+                    </p>
+                    <p class="mb-1" style="font-size: 0.75em;">
+                        Autorizado mediante Resolución de Intendencia
+                        SUNAT (consultar autenticidad en el portal SUNAT).
+                    </p>
+                    <p class="text-muted mb-0" style="font-size: 0.7em; word-break: break-all;">
+                        <strong>Hash:</strong>
+                        <t t-set="hash_val" t-value="o.l10n_pe_edi_document_id._extract_signature_value()"/>
+                        <t t-esc="hash_val[:40] if hash_val else ''"/>
+                    </p>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>
