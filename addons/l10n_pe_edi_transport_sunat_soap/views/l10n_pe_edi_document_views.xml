@@ -23,6 +23,24 @@
                     <field name="sunat_cdr" filename="sunat_cdr_filename"/>
                     <field name="sunat_cdr_filename" invisible="1"/>
                 </group>
+                <group string="Envío asíncrono (RC / RA)"
+                       invisible="not sunat_summary_ticket">
+                    <field name="sunat_summary_ticket"/>
+                    <field name="sunat_summary_status_code"/>
+                    <field name="sunat_summary_last_check_at"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <button name="action_l10n_pe_send_summary"
+                        type="object"
+                        string="Enviar como RC (async)"
+                        class="oe_highlight"
+                        invisible="not xml_signed or state == 'accepted' or sunat_summary_ticket"/>
+                <button name="action_l10n_pe_check_summary_status"
+                        type="object"
+                        string="Consultar estado RC"
+                        class="oe_highlight"
+                        invisible="not sunat_summary_ticket or sunat_summary_status_code == '0'"/>
             </xpath>
         </field>
     </record>

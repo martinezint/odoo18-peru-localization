@@ -3,3 +3,4 @@
 
 from . import test_cdr_parser
 from . import test_sunat_soap
+from . import test_sunat_soap_async

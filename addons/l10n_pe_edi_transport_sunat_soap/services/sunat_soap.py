@@ -156,3 +156,74 @@ class SunatBillService:
         except TransportError as exc:
             raise SunatSoapError("TRANSPORT", str(exc)) from exc
         return self.extract_cdr_from_zip(cdr_zip_bytes)
+
+    def send_summary(self, zip_filename: str, zip_bytes: bytes) -> str:
+        """Llama sendSummary (ASYNC). Devuelve el numTicket para polling posterior.
+
+        sendSummary se usa para Resumen Diario de Boletas (RC) y Comunicación
+        de Baja (RA), que SUNAT procesa de forma asíncrona. El ticket se consulta
+        con `get_status_async(ticket)` hasta tener el CDR.
+
+        Importante: el ZIP que se envía no debe tener prefijo 'BC-' ni 'RA-' —
+        es el archivo XML directo, comprimido con el mismo nombre lógico.
+        """
+        try:
+            ticket = self.client.service.sendSummary(
+                fileName=zip_filename,
+                contentFile=zip_bytes,
+            )
+        except Fault as exc:
+            raise SunatSoapError(
+                fault_code=str(getattr(exc, "code", "") or "SOAP_FAULT"),
+                message=exc.message or str(exc),
+            ) from exc
+        except TransportError as exc:
+            raise SunatSoapError("TRANSPORT", str(exc)) from exc
+        if not ticket:
+            raise SunatSoapError("EMPTY_TICKET", "SUNAT no devolvió numTicket")
+        return str(ticket)
+
+    def get_status_async(self, ticket: str) -> dict:
+        """Consulta estado de una operación asíncrona vía getStatus(ticket).
+
+        Devuelve dict con:
+        - status_code: '0' procesado, '98' en proceso, '99' error, '90' error
+          de proceso
+        - cdr_bytes: bytes del CDR XML cuando status_code='0'
+
+        Llamar repetidamente hasta status != '98'. Backoff sugerido: 5-30 s
+        entre llamadas.
+        """
+        try:
+            resp = self.client.service.getStatus(ticket=ticket)
+        except Fault as exc:
+            raise SunatSoapError(
+                fault_code=str(getattr(exc, "code", "") or "SOAP_FAULT"),
+                message=exc.message or str(exc),
+            ) from exc
+        except TransportError as exc:
+            raise SunatSoapError("TRANSPORT", str(exc)) from exc
+
+        # SUNAT devuelve un struct con statusCode + content (CDR ZIP base64)
+        # zeep lo deserializa a un objeto con atributos.
+        status_code = self._get_attr(resp, "statusCode", "")
+        content = self._get_attr(resp, "content", None)
+        cdr_bytes = b""
+        if content and status_code == "0":
+            try:
+                cdr_bytes = self.extract_cdr_from_zip(content)
+            except SunatSoapError:
+                cdr_bytes = b""  # no fail si el ZIP es raro
+        return {
+            "status_code": str(status_code) if status_code else "",
+            "cdr_bytes": cdr_bytes,
+        }
+
+    @staticmethod
+    def _get_attr(obj, name, default=None):
+        """Saca un atributo del objeto que devuelve zeep (puede ser dict o struct)."""
+        if obj is None:
+            return default
+        if isinstance(obj, dict):
+            return obj.get(name, default)
+        return getattr(obj, name, default)
