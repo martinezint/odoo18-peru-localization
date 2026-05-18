@@ -45,6 +45,11 @@
                             string="Descargar archivo"
                             class="oe_highlight"
                             invisible="state != 'ready'"/>
+                    <button name="action_reconcile_against_moves"
+                            type="object"
+                            string="Conciliar contra Odoo"
+                            class="btn-primary"
+                            invisible="state != 'downloaded' or libro != 'rce'"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,requested,ready,downloaded"/>
                 </header>
@@ -71,6 +76,11 @@
                     <group string="Error" invisible="not error_message">
                         <field name="error_message" nolabel="1"/>
                     </group>
+                    <notebook invisible="not reconcile_summary">
+                        <page string="Conciliación SIRE → Odoo">
+                            <field name="reconcile_summary" widget="text" readonly="1"/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

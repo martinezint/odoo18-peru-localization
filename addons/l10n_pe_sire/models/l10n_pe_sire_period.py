@@ -199,3 +199,37 @@ class L10nPeSirePeriod(models.Model):
                 "state": "downloaded",
             }
         )
+
+    # ─── Conciliación con account.move (solo RCE) ────────────────
+
+    reconcile_summary = fields.Text(
+        string="Resumen conciliación",
+        readonly=True,
+        copy=False,
+    )
+
+    def action_reconcile_against_moves(self):
+        """Parsea el TXT descargado y matchea contra account.move (in_invoice).
+
+        Solo aplica a RCE (compras). Marca cada move con
+        `l10n_pe_sire_match_status` y guarda un resumen en este record.
+        """
+        import base64
+        import json
+
+        from ..services.sire_proposal_parser import parse_rce_txt
+
+        for rec in self:
+            if rec.libro != "rce":
+                raise ValidationError(_("La conciliación solo aplica a RCE (compras)."))
+            if not rec.file_data:
+                raise ValidationError(_("No hay archivo de propuesta descargado."))
+            content = base64.b64decode(rec.file_data)
+            lines = parse_rce_txt(content)
+            results = (
+                rec.env["account.move"]
+                .with_company(rec.company_id)
+                ._l10n_pe_sire_reconcile_proposal(lines, rec.periodo)
+            )
+            rec.reconcile_summary = json.dumps(results, indent=2, ensure_ascii=False)
+        return True

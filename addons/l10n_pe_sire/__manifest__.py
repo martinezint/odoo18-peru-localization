@@ -23,6 +23,7 @@
         "security/ir.model.access.csv",
         "views/res_company_views.xml",
         "views/l10n_pe_sire_period_views.xml",
+        "views/account_move_views.xml",
     ],
     "demo": [],
     "installable": True,

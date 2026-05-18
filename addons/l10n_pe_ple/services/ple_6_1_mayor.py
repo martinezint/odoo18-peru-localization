@@ -100,14 +100,21 @@ class Ple6_1Generator:
         month = int(self.period_yyyymm[4:])
         date_from = date(year, month, 1)
         date_to = date(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
-        Line = self.env["account.move.line"]
-        groups = Line.read_group(
-            domain=[
+        Move = self.env["account.move"]
+        # Buscamos primero los moves POSTeados del período (state directo, no
+        # AML.parent_state — éste último es store=True related y requiere ORM
+        # write para sincronizarse, los tests usan SQL UPDATE puro).
+        moves = Move.search(
+            [
                 ("company_id", "=", self.company.id),
-                ("parent_state", "=", "posted"),
+                ("state", "=", "posted"),
                 ("date", ">=", date_from),
                 ("date", "<", date_to),
-            ],
+            ]
+        )
+        Line = self.env["account.move.line"]
+        groups = Line.read_group(
+            domain=[("move_id", "in", moves.ids)],
             fields=["debit:sum", "credit:sum"],
             groupby=["account_id"],
         )
