@@ -127,12 +127,61 @@ class StockPicking(models.Model):
                         _("Ubigeo %s debe ser 6 dígitos numéricos (INEI/SUNAT).") % fname
                     )
 
-    # ─── Acción: generar GRE Remitente UBL ────────────────────────
+    # ─── Acciones: generar GRE Remitente UBL ──────────────────────
 
     def action_l10n_pe_gre_generate(self):
         """Construye el DespatchAdvice UBL y lo firma con el cert de la empresa."""
         for picking in self:
             picking._l10n_pe_gre_generate_one()
+        return True
+
+    def action_l10n_pe_gre_generate_and_send(self):
+        """Genera + firma + envía a SUNAT en una sola acción.
+
+        Tras generar el doc EDI con XML firmado, llama send_gre del cliente
+        REST. Guarda el numTicket devuelto en gre_ticket. El cron
+        _cron_poll_gre_tickets recogerá el resultado final.
+        """
+        import zipfile
+        from io import BytesIO
+
+        for picking in self:
+            doc = picking._l10n_pe_gre_generate_one()
+            if not doc or not doc.xml_signed:
+                continue
+            client = picking.company_id._get_l10n_pe_gre_rest_client()
+            xml_bytes = base64.b64decode(doc.xml_signed)
+            xml_filename = doc.name  # e.g. 20131312955-09-T001-1.xml
+            zip_filename = xml_filename.replace(".xml", ".zip")
+            buf = BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr(xml_filename, xml_bytes)
+            # num_doc para la URL REST: <tipo>-<serie>-<numero> sin RUC.
+            # doc.name = '<RUC>-09-T001-1.xml' → num_doc = '09-T001-1'
+            base = xml_filename.removesuffix(".xml")
+            parts = base.split("-", 1)  # divide RUC del resto
+            num_doc = parts[1] if len(parts) == 2 else base
+            try:
+                ticket = client.send_gre(num_doc, zip_filename, buf.getvalue())
+            except Exception as exc:
+                _logger.exception("Fallo enviando GRE %s", doc.name)
+                doc.write(
+                    {
+                        "state": "error",
+                        "error_message": str(exc),
+                    }
+                )
+                raise UserError(_("SUNAT GRE rechazó el envío: %s") % exc) from exc
+            doc.write(
+                {
+                    "gre_ticket": ticket,
+                    "gre_ind_estado": "01",  # en proceso
+                    "gre_sent_at": fields.Datetime.now(),
+                    "state": "sent",
+                    "error_message": False,
+                }
+            )
+            _logger.info("GRE enviada a SUNAT: %s → ticket %s", doc.name, ticket)
         return True
 
     def _l10n_pe_gre_generate_one(self):

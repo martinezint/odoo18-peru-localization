@@ -44,9 +44,16 @@
                     </group>
                     <button name="action_l10n_pe_gre_generate"
                             type="object"
-                            string="Generar GRE Remitente"
+                            string="Generar GRE (sin enviar)"
+                            class="btn-secondary"
+                            invisible="state != 'done' or l10n_pe_gre_edi_document_id"
+                            help="Genera el XML firmado y lo guarda; no envía a SUNAT."/>
+                    <button name="action_l10n_pe_gre_generate_and_send"
+                            type="object"
+                            string="Generar y enviar a SUNAT"
                             class="btn-primary"
-                            invisible="state != 'done' or l10n_pe_gre_edi_document_id"/>
+                            invisible="state != 'done' or l10n_pe_gre_edi_document_id"
+                            help="Genera, firma y envía a SUNAT GRE 2.0 REST. Devuelve un ticket asíncrono que el cron consultará."/>
                 </page>
             </xpath>
         </field>

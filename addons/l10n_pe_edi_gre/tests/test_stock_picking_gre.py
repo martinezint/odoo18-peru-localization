@@ -105,3 +105,150 @@ class TestStockPickingGre(TransactionCase):
             picking._l10n_pe_gre_validate_required()
         except UserError as exc:
             self.fail(f"validate_required no debió lanzar: {exc}")
+
+
+@tagged("post_install", "-at_install", "l10n_pe_edi_gre")
+class TestStockPickingGenerateAndSend(TransactionCase):
+    """Wire-up: action_l10n_pe_gre_generate_and_send debe llamar send_gre tras generar.
+
+    Usa self.env.company (en vez de crear nueva) porque picking_type/warehouse
+    son per-company; lo más simple es decorar la company existente con los
+    fields requeridos.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.pe = cls.env.ref("base.pe")
+        cls.company = cls.env.company  # reuse default
+        cls.company.write(
+            {
+                "vat": "20131312955",
+                "l10n_pe_gre_client_id": "test-id",
+                "l10n_pe_gre_client_secret": "test-secret",
+                "l10n_pe_edi_environment": "beta",
+            }
+        )
+        # Chart 'pe' es probable que ya esté aplicado (otras pruebas lo cargan);
+        # si no, try_loading. Idempotente vía Odoo internals.
+        if cls.company.chart_template != "pe":
+            cls.env["account.chart.template"].try_loading(
+                "pe", company=cls.company, install_demo=False
+            )
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "Cliente Wire",
+                "country_id": cls.pe.id,
+                "vat": "20100047218",
+            }
+        )
+        cls.move = cls.env["account.move"].create(
+            {
+                "move_type": "out_invoice",
+                "partner_id": cls.partner.id,
+                "company_id": cls.company.id,
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "X",
+                            "quantity": 1,
+                            "price_unit": 100.0,
+                            "tax_ids": [],
+                        },
+                    )
+                ],
+            }
+        )
+
+    def _new_picking(self):
+        picking_type = self.env["stock.picking.type"].search(
+            [
+                ("code", "=", "outgoing"),
+                ("company_id", "=", self.company.id),
+            ],
+            limit=1,
+        )
+        return self.env["stock.picking"].create(
+            {
+                "partner_id": self.partner.id,
+                "picking_type_id": picking_type.id,
+                "location_id": picking_type.default_location_src_id.id,
+                "location_dest_id": picking_type.default_location_dest_id.id,
+                "l10n_pe_gre_motivo_traslado": "01",
+                "l10n_pe_gre_transport_mode": "02",
+                "l10n_pe_gre_license_plate": "ABC-123",
+                "l10n_pe_gre_driver_doc_number": "12345678",
+                "l10n_pe_gre_origin_ubigeo": "150122",
+                "l10n_pe_gre_destination_ubigeo": "150101",
+                "l10n_pe_gre_gross_weight": 50.0,
+                "l10n_pe_gre_total_packages": 1,
+            }
+        )
+
+    def test_generate_and_send_calls_send_gre(self):
+        from unittest.mock import MagicMock, patch
+
+        picking = self._new_picking()
+        fake_signer = MagicMock()
+        fake_signer.sign = MagicMock()
+
+        with (
+            patch(
+                "odoo.addons.l10n_pe_edi.models.res_company.ResCompany._get_l10n_pe_edi_signer",
+                return_value=fake_signer,
+            ),
+            patch.object(
+                type(picking),
+                "_l10n_pe_gre_find_related_move",
+                return_value=self.move,
+            ),
+            patch(
+                "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest.SunatGreRestClient.send_gre",
+                return_value="ticket-wire-456",
+            ),
+        ):
+            picking.action_l10n_pe_gre_generate_and_send()
+
+        picking.invalidate_recordset()
+        doc = picking.l10n_pe_gre_edi_document_id
+        self.assertTrue(doc)
+        self.assertEqual(doc.gre_ticket, "ticket-wire-456")
+        self.assertEqual(doc.gre_ind_estado, "01")  # en proceso
+        self.assertEqual(doc.state, "sent")
+        self.assertTrue(doc.gre_sent_at)
+
+    def test_send_error_sets_state_error(self):
+        """Si SUNAT rechaza, el doc queda en state='error' con error_message."""
+        from unittest.mock import MagicMock, patch
+
+        picking = self._new_picking()
+        fake_signer = MagicMock()
+        fake_signer.sign = MagicMock()
+
+        from odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest import GreRestError
+
+        with (
+            patch(
+                "odoo.addons.l10n_pe_edi.models.res_company.ResCompany._get_l10n_pe_edi_signer",
+                return_value=fake_signer,
+            ),
+            patch.object(
+                type(picking),
+                "_l10n_pe_gre_find_related_move",
+                return_value=self.move,
+            ),
+            patch(
+                "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest.SunatGreRestClient.send_gre",
+                side_effect=GreRestError("Hash inválido", sunat_code="1503"),
+            ),
+        ):
+            with self.assertRaisesRegex(UserError, "SUNAT GRE"):
+                picking.action_l10n_pe_gre_generate_and_send()
+
+        picking.invalidate_recordset()
+        doc = picking.l10n_pe_gre_edi_document_id
+        self.assertTrue(doc)
+        self.assertEqual(doc.state, "error")
+        self.assertIn("Hash", doc.error_message or "")
