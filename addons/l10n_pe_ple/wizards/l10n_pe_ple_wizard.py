@@ -7,10 +7,12 @@ import io
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
+from ..services.ple_5_1_diario import Ple5_1Generator
 from ..services.ple_8_1_compras import Ple8_1Generator
 from ..services.ple_14_1_ventas import Ple14_1Generator
 from ..services.ple_filename import (
     LIBRO_COMPRAS_8_1,
+    LIBRO_DIARIO_5_1,
     LIBRO_VENTAS_14_1,
     build_ple_filename,
 )
@@ -18,7 +20,16 @@ from ..services.ple_filename import (
 LIBRO_SELECTION = [
     ("14_1", "14.1 — Registro de Ventas e Ingresos"),
     ("8_1", "8.1 — Registro de Compras"),
+    ("5_1", "5.1 — Libro Diario"),
 ]
+
+
+# Mapeo libro → (Generator class, código SUNAT)
+_LIBRO_DISPATCH = {
+    "14_1": (Ple14_1Generator, LIBRO_VENTAS_14_1),
+    "8_1": (Ple8_1Generator, LIBRO_COMPRAS_8_1),
+    "5_1": (Ple5_1Generator, LIBRO_DIARIO_5_1),
+}
 
 
 class L10nPePleWizard(models.TransientModel):
@@ -57,15 +68,13 @@ class L10nPePleWizard(models.TransientModel):
             raise UserError(_("Período debe ser YYYYMM (6 dígitos)."))
         if not self.company_id.vat:
             raise UserError(_("La empresa %s no tiene RUC configurado.") % self.company_id.name)
+        if self.libro not in _LIBRO_DISPATCH:
+            raise UserError(_("Libro %s no soportado.") % self.libro)
+
+        GeneratorCls, libro_code = _LIBRO_DISPATCH[self.libro]
+        gen = GeneratorCls(self.env, self.company_id, self.period_yyyymm)
 
         buf = io.BytesIO()
-        if self.libro == "14_1":
-            gen = Ple14_1Generator(self.env, self.company_id, self.period_yyyymm)
-            libro_code = LIBRO_VENTAS_14_1
-        else:
-            gen = Ple8_1Generator(self.env, self.company_id, self.period_yyyymm)
-            libro_code = LIBRO_COMPRAS_8_1
-
         count = gen.generate_to_file(buf)
 
         filename = build_ple_filename(
