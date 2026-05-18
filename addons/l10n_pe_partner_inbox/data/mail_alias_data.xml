@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+  <!--
+    Alias por defecto: factura.proveedor@<catchall_domain>
+    El usuario debe ajustar:
+      - alias_name (parte local del email)
+      - el dominio se toma de ir.config_parameter `mail.catchall.domain`
+
+    Crear/configurar IMAP/SMTP en Ajustes → Técnico → Correo electrónico
+    si quieres recibir emails desde un servidor externo.
+  -->
+  <record id="alias_partner_inbox" model="mail.alias">
+    <field name="alias_name">factura.proveedor</field>
+    <field name="alias_model_id" ref="model_l10n_pe_partner_inbox_message"/>
+    <field name="alias_contact">everyone</field>
+  </record>
+</odoo>

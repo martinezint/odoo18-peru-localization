@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_l10n_pe_upload_supplier_xml,Upload Supplier XML Wizard,model_l10n_pe_upload_supplier_xml,account.group_account_invoice,1,1,1,1
+access_l10n_pe_partner_inbox_message,Partner Inbox Message,model_l10n_pe_partner_inbox_message,account.group_account_invoice,1,1,1,1
+access_l10n_pe_partner_inbox_message_user,Partner Inbox Message User RO,model_l10n_pe_partner_inbox_message,account.group_account_user,1,1,1,0

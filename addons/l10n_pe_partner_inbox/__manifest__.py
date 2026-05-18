@@ -14,14 +14,17 @@
     "depends": [
         "l10n_pe_base_extras",
         "account",
+        "mail",
     ],
     "external_dependencies": {
         "python": ["lxml"],
     },
     "data": [
         "security/ir.model.access.csv",
+        "data/mail_alias_data.xml",
         "wizards/upload_supplier_xml_views.xml",
         "views/account_move_views.xml",
+        "views/partner_inbox_message_views.xml",
     ],
     "demo": [],
     "installable": True,
