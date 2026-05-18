@@ -50,7 +50,9 @@ class L10nPeEdiDocument(models.Model):
         default="draft",
         required=True,
         index=True,
-        tracking=True,
+        # Note: tracking removed — el modelo no hereda mail.thread.
+        # Cuando añadamos chatter (siguiente iteración), añadir mail.thread
+        # y restaurar tracking=True.
     )
     xml_unsigned = fields.Binary(
         string="XML sin firmar",

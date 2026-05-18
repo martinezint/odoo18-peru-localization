@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_l10n_pe_edi_document_form_transport" model="ir.ui.view">
+        <field name="name">l10n.pe.edi.document.form.transport</field>
+        <field name="model">l10n.pe.edi.document</field>
+        <field name="inherit_id" ref="l10n_pe_edi.view_l10n_pe_edi_document_form"/>
+        <field name="arch" type="xml">
+            <!--
+                Anclamos al campo digest_value (estable) en vez del group[@string]
+                porque Odoo 18 prohíbe selectores por @string en inheritance.
+            -->
+            <xpath expr="//field[@name='digest_value']" position="after">
+                <group string="Respuesta SUNAT (CDR)"
+                       invisible="not sunat_response_code">
+                    <field name="sunat_sent_at"/>
+                    <field name="sunat_response_code"/>
+                    <field name="sunat_response_description"/>
+                    <field name="sunat_cdr" filename="sunat_cdr_filename"/>
+                    <field name="sunat_cdr_filename" invisible="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

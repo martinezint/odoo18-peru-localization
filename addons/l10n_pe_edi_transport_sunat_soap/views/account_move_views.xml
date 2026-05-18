@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_account_move_form_l10n_pe_edi_transport" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.pe.edi.transport</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_pe_edi.view_account_move_form_l10n_pe_edi"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_l10n_pe_edi_generate']" position="after">
+                <button name="action_l10n_pe_edi_send_sunat"
+                        type="object"
+                        string="Enviar a SUNAT"
+                        class="oe_highlight"
+                        invisible="l10n_pe_edi_state not in ('signed', 'rejected', 'error')"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
