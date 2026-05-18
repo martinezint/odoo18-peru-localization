@@ -111,30 +111,26 @@ class TestStockPickingGre(TransactionCase):
 class TestStockPickingGenerateAndSend(TransactionCase):
     """Wire-up: action_l10n_pe_gre_generate_and_send debe llamar send_gre tras generar.
 
-    Usa self.env.company (en vez de crear nueva) porque picking_type/warehouse
-    son per-company; lo más simple es decorar la company existente con los
-    fields requeridos.
+    Crea una empresa nueva (con su warehouse auto-generado por stock) para
+    aislarse de asientos reconciliados de tests previos que rompen try_loading.
     """
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env.company  # reuse default
-        cls.company.write(
+        cls.company = cls.env["res.company"].create(
             {
+                "name": "Test PE GRE Wire",
+                "country_id": cls.pe.id,
                 "vat": "20131312955",
                 "l10n_pe_gre_client_id": "test-id",
                 "l10n_pe_gre_client_secret": "test-secret",
                 "l10n_pe_edi_environment": "beta",
             }
         )
-        # Chart 'pe' es probable que ya esté aplicado (otras pruebas lo cargan);
-        # si no, try_loading. Idempotente vía Odoo internals.
-        if cls.company.chart_template != "pe":
-            cls.env["account.chart.template"].try_loading(
-                "pe", company=cls.company, install_demo=False
-            )
+        cls.env = cls.env(user=cls.env.user.with_company(cls.company))
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
         cls.partner = cls.env["res.partner"].create(
             {
                 "name": "Cliente Wire",

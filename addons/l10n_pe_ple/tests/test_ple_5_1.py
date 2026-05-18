@@ -83,12 +83,19 @@ class TestPle5_1Generator(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env.company  # default
-        cls.company.write({"vat": "20131312955"})
-        if cls.company.chart_template != "pe":
-            cls.env["account.chart.template"].try_loading(
-                "pe", company=cls.company, install_demo=False
-            )
+        # Empresa NUEVA: evita conflictos con asientos reconciliados de
+        # tests previos en la suite (try_loading falla si el chart se intenta
+        # aplicar sobre una company con AML reconciliados).
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test PE Diario",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+            }
+        )
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        # Operamos en contexto multi-company de la empresa nueva.
+        cls.env = cls.env(user=cls.env.user.with_company(cls.company))
         cls.partner = cls.env["res.partner"].create(
             {
                 "name": "Cliente Diario",
