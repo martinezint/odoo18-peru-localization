@@ -5,3 +5,4 @@ from . import test_gre_rest_client
 from . import test_token_cache
 from . import test_gre_remitente_builder
 from . import test_stock_picking_gre
+from . import test_cron_poll_gre

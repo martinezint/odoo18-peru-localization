@@ -20,6 +20,7 @@
         "python": ["httpx", "lxml"],
     },
     "data": [
+        "data/ir_cron_data.xml",
         "views/res_company_views.xml",
         "views/l10n_pe_edi_document_views.xml",
         "views/stock_picking_views.xml",

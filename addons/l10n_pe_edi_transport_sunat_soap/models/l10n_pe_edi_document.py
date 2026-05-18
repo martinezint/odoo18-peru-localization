@@ -4,7 +4,7 @@
 import base64
 import logging
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -115,6 +115,33 @@ class L10nPeEdiDocument(models.Model):
         for doc in self:
             doc._check_summary_status_one()
         return True
+
+    @api.model
+    def _cron_poll_summary_tickets(self):
+        """Cron: consulta el estado de todos los docs con ticket en '98'
+        (en proceso). Errores por doc se loggean pero no detienen el cron.
+
+        Llamado por ir.cron 'Peru SUNAT: poll tickets RC async' (data file).
+        """
+        pending = self.search([
+            ("sunat_summary_ticket", "!=", False),
+            ("sunat_summary_status_code", "=", "98"),
+        ])
+        if not pending:
+            _logger.debug("cron_poll_summary_tickets: nada pendiente.")
+            return
+        _logger.info(
+            "cron_poll_summary_tickets: %d tickets RC para polling.",
+            len(pending),
+        )
+        for doc in pending:
+            try:
+                doc._check_summary_status_one()
+            except Exception:
+                _logger.exception(
+                    "Fallo polling ticket %s (doc %s)",
+                    doc.sunat_summary_ticket, doc.name,
+                )
 
     def _check_summary_status_one(self):
         self.ensure_one()
