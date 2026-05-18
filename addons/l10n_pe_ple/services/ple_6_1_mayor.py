@@ -89,35 +89,47 @@ class Ple6_1Generator:
         return count
 
     def _aggregate_by_account(self) -> list[dict]:
-        """SUM(debit), SUM(credit) GROUP BY account agrupando AML del período."""
-        year = int(self.period_yyyymm[:4])
-        month = int(self.period_yyyymm[4:])
+        """SUM(debit), SUM(credit) GROUP BY account agrupando AML del período.
+
+        Usa el ORM (read_group) en vez de SQL directo: en Odoo 18 la columna
+        `account.account.code` es un computed/related sobre `code_store` JSONB.
+        """
         from datetime import date
 
+        year = int(self.period_yyyymm[:4])
+        month = int(self.period_yyyymm[4:])
         date_from = date(year, month, 1)
         date_to = date(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
-        self.env.cr.execute(
-            """
-            SELECT
-                aa.id        AS account_id,
-                aa.code      AS code,
-                aa.name      AS name,
-                SUM(aml.debit)  AS debit,
-                SUM(aml.credit) AS credit
-            FROM account_move_line aml
-            JOIN account_account aa ON aa.id = aml.account_id
-            WHERE aml.company_id = %s
-              AND aml.parent_state = 'posted'
-              AND aml.date >= %s
-              AND aml.date <  %s
-            GROUP BY aa.id, aa.code, aa.name
-            HAVING SUM(aml.debit) <> 0 OR SUM(aml.credit) <> 0
-            ORDER BY aa.code
-            """,
-            (self.company.id, date_from, date_to),
+        Line = self.env["account.move.line"]
+        groups = Line.read_group(
+            domain=[
+                ("company_id", "=", self.company.id),
+                ("parent_state", "=", "posted"),
+                ("date", ">=", date_from),
+                ("date", "<", date_to),
+            ],
+            fields=["debit:sum", "credit:sum"],
+            groupby=["account_id"],
         )
-        cols = [d.name for d in self.env.cr.description]
-        return [dict(zip(cols, row, strict=False)) for row in self.env.cr.fetchall()]
+        out = []
+        for g in groups:
+            debit = g["debit"] or 0.0
+            credit = g["credit"] or 0.0
+            if debit == 0 and credit == 0:
+                continue
+            account_id = g["account_id"][0]
+            account = self.env["account.account"].browse(account_id)
+            out.append(
+                {
+                    "account_id": account_id,
+                    "code": (account.code or "").strip(),
+                    "name": account.name or "",
+                    "debit": debit,
+                    "credit": credit,
+                }
+            )
+        out.sort(key=lambda r: r["code"])
+        return out
 
 
 def _fmt_amt(value, decimals: int = 2) -> str:
