@@ -134,3 +134,131 @@ class TestRcWizard(TransactionCase):
         wiz = self._make_wizard(ref_date=date(2026, 5, 17))
         wiz.action_generate()
         self.assertEqual(wiz.boletas_count, 1)
+
+
+@tagged("post_install", "-at_install", "l10n_pe_pos_edi")
+class TestRcWizardAutoSend(TransactionCase):
+    """Tests del wire-up: send_to_sunat=True dispara sendSummary tras firmar."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.pe = cls.env.ref("base.pe")
+        cls.company = cls.env["res.company"].create({
+            "name": "Auto Send Co",
+            "country_id": cls.pe.id,
+            "vat": "20131312955",
+            "l10n_pe_edi_sol_user": "MODDATOS",
+            "l10n_pe_edi_sol_password": "MODDATOS",
+            "l10n_pe_edi_environment": "beta",
+        })
+        cls.env["account.chart.template"].try_loading(
+            "pe", company=cls.company, install_demo=False
+        )
+        cls.partner = cls.env["res.partner"].create({
+            "name": "Cli Auto",
+            "country_id": cls.pe.id,
+        })
+        # 1 boleta el día 17
+        m = cls.env["account.move"].with_company(cls.company).create({
+            "move_type": "out_invoice",
+            "partner_id": cls.partner.id,
+            "company_id": cls.company.id,
+            "invoice_date": date(2026, 5, 17),
+            "date": date(2026, 5, 17),
+            "name": "B001/00000099",
+            "invoice_line_ids": [(0, 0, {
+                "name": "Producto", "quantity": 1, "price_unit": 100.0,
+                "tax_ids": [],
+            })],
+        })
+        cls.env.cr.execute(
+            "UPDATE account_move SET state='posted' WHERE id=%s", (m.id,)
+        )
+        m.invalidate_recordset()
+
+    def _make_wizard(self, sign=True, send=True):
+        return self.env["l10n.pe.rc.wizard"].create({
+            "company_id": self.company.id,
+            "reference_date": date(2026, 5, 17),
+            "issue_date": date(2026, 5, 18),
+            "correlativo": 1,
+            "sign_xml": sign,
+            "send_to_sunat": send,
+        })
+
+    def test_auto_send_calls_sendsummary_when_signed(self):
+        """Con sign=True + send=True, debe llamar send_summary y guardar ticket."""
+        from unittest.mock import patch
+        wiz = self._make_wizard(sign=True, send=True)
+        # Mockeamos solo el cert + send_summary; el signer real haría fallar
+        # por falta de cert. Bypaseamos el firmado mockeando _get_l10n_pe_edi_signer
+        # y send_summary independientemente.
+        from unittest.mock import MagicMock
+        fake_signer = MagicMock()
+        fake_signer.sign = MagicMock()  # noop
+
+        with patch(
+            "odoo.addons.l10n_pe_edi.models.res_company.ResCompany."
+            "_get_l10n_pe_edi_signer",
+            return_value=fake_signer,
+        ), patch(
+            "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
+            "SunatBillService.send_summary",
+            return_value="ticket-auto-123",
+        ):
+            wiz.action_generate()
+
+        self.assertTrue(wiz.edi_document_id)
+        doc = wiz.edi_document_id
+        self.assertEqual(doc.sunat_summary_ticket, "ticket-auto-123")
+        self.assertEqual(doc.sunat_summary_status_code, "98")
+        self.assertEqual(doc.state, "sent")
+
+    def test_no_auto_send_when_send_to_sunat_false(self):
+        """Con send_to_sunat=False no debe llamar send_summary."""
+        from unittest.mock import MagicMock, patch
+        wiz = self._make_wizard(sign=True, send=False)
+        fake_signer = MagicMock()
+        fake_signer.sign = MagicMock()
+        # Si llama send_summary, el side_effect explota el test
+        called_send = []
+
+        def _fail(*a, **kw):
+            called_send.append(True)
+            return "should-not-be-called"
+
+        with patch(
+            "odoo.addons.l10n_pe_edi.models.res_company.ResCompany."
+            "_get_l10n_pe_edi_signer",
+            return_value=fake_signer,
+        ), patch(
+            "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
+            "SunatBillService.send_summary",
+            side_effect=_fail,
+        ):
+            wiz.action_generate()
+
+        self.assertFalse(called_send, "send_summary no debe llamarse con send_to_sunat=False")
+        self.assertTrue(wiz.edi_document_id)
+        self.assertFalse(wiz.edi_document_id.sunat_summary_ticket)
+        self.assertEqual(wiz.edi_document_id.state, "signed")
+
+    def test_no_auto_send_when_sign_false(self):
+        """Con sign_xml=False el send no se dispara (no hay XML firmado)."""
+        from unittest.mock import patch
+        wiz = self._make_wizard(sign=False, send=True)
+        called_send = []
+
+        def _fail(*a, **kw):
+            called_send.append(True)
+            return "should-not-be-called"
+
+        with patch(
+            "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
+            "SunatBillService.send_summary",
+            side_effect=_fail,
+        ):
+            wiz.action_generate()
+        self.assertFalse(called_send)
+        self.assertEqual(wiz.edi_document_id.state, "draft")

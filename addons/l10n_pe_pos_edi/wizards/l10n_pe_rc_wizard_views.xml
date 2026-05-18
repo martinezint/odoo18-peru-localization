@@ -16,6 +16,7 @@
                     <field name="issue_date"/>
                     <field name="correlativo"/>
                     <field name="sign_xml"/>
+                    <field name="send_to_sunat"/>
                 </group>
                 <group string="Resultado" invisible="not xml_data">
                     <field name="boletas_count" readonly="1"/>

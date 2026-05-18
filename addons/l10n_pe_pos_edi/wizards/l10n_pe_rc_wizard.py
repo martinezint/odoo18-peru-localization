@@ -51,6 +51,14 @@ class L10nPeRcWizard(models.TransientModel):
         help="Si está activo, se firma con el cert XAdES de la empresa. "
              "Desactiva para previsualizar el XML sin firma.",
     )
+    send_to_sunat = fields.Boolean(
+        string="Enviar a SUNAT inmediatamente",
+        default=True,
+        help="Si está activo, tras firmar el XML se llama sendSummary "
+             "automáticamente y se guarda el ticket en el documento EDI. "
+             "Requiere XML firmado (sign_xml=True) y credenciales SOL "
+             "configuradas en la empresa.",
+    )
 
     boletas_count = fields.Integer(readonly=True)
     edi_document_id = fields.Many2one(
@@ -109,6 +117,15 @@ class L10nPeRcWizard(models.TransientModel):
             "xml_data": base64.b64encode(xml_bytes),
             "xml_filename": filename,
         })
+
+        # Auto-send a SUNAT si está activo + firmado + hay doc EDI persistente
+        if self.send_to_sunat and self.sign_xml and doc:
+            try:
+                doc.action_l10n_pe_send_summary()
+            except Exception as exc:
+                _logger.exception("Auto-send a SUNAT falló para %s", doc.name)
+                # No re-raise: queremos que el wizard cierre con el XML disponible.
+                # El error queda en doc.error_message.
 
         # Reabre el wizard con el resultado
         return {
