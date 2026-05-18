@@ -24,6 +24,7 @@
         "security/ir.model.access.csv",
         "views/l10n_pe_retention_views.xml",
         "views/l10n_pe_perception_views.xml",
+        "views/account_payment_register_views.xml",
     ],
     "demo": [],
     "installable": True,

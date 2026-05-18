@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Extensión wizard Registrar Pago: mostrar bloque retención PE -->
+  <record id="view_account_payment_register_l10n_pe_form" model="ir.ui.view">
+    <field name="name">account.payment.register.form.l10n_pe</field>
+    <field name="model">account.payment.register</field>
+    <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//group" position="after">
+        <group string="Retención IGV (Perú)" invisible="not l10n_pe_retention_applicable">
+          <field name="l10n_pe_retention_base" readonly="1"/>
+          <field name="l10n_pe_retention_amount"/>
+          <field name="l10n_pe_retention_applicable" invisible="1"/>
+        </group>
+      </xpath>
+    </field>
+  </record>
+
+  <!-- Partner: checkbox 'Sujeto a retención IGV' -->
+  <record id="view_partner_l10n_pe_retention_form" model="ir.ui.view">
+    <field name="name">res.partner.form.l10n_pe_retention</field>
+    <field name="model">res.partner</field>
+    <field name="inherit_id" ref="account.view_partner_property_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//group[@name='accounting']" position="inside">
+        <field name="l10n_pe_retention_applies"/>
+      </xpath>
+    </field>
+  </record>
+
+  <!-- Company: bloque config retención -->
+  <record id="view_company_l10n_pe_retention_form" model="ir.ui.view">
+    <field name="name">res.company.form.l10n_pe_retention</field>
+    <field name="model">res.company</field>
+    <field name="inherit_id" ref="base.view_company_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//notebook" position="inside">
+        <page string="Retención IGV (Perú)">
+          <group>
+            <field name="l10n_pe_retention_threshold"/>
+            <field name="l10n_pe_retention_rate"/>
+            <field name="l10n_pe_retention_serie"/>
+            <field name="l10n_pe_retention_journal_id" domain="[('type','=','general'),('company_id','=',id)]"/>
+          </group>
+        </page>
+      </xpath>
+    </field>
+  </record>
+</odoo>
