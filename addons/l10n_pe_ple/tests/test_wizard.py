@@ -90,6 +90,13 @@ class TestPleWizard(TransactionCase):
         wiz.action_generate()
         self.assertIn("080100", wiz.file_name)
 
+    def test_generate_mayor_filename(self):
+        wiz = self._make_wizard(libro="6_1")
+        wiz.action_generate()
+        self.assertIn("060100", wiz.file_name)
+        # Mayor agregado: al menos 1 cuenta con movimiento (la venta de setUpClass)
+        self.assertGreaterEqual(wiz.line_count, 1)
+
     def test_invalid_period_raises(self):
         wiz = self._make_wizard(period="2026")
         with self.assertRaisesRegex(UserError, "YYYYMM"):

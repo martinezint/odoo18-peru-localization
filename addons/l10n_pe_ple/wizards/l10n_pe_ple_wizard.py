@@ -8,11 +8,13 @@ from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 from ..services.ple_5_1_diario import Ple5_1Generator
+from ..services.ple_6_1_mayor import Ple6_1Generator
 from ..services.ple_8_1_compras import Ple8_1Generator
 from ..services.ple_14_1_ventas import Ple14_1Generator
 from ..services.ple_filename import (
     LIBRO_COMPRAS_8_1,
     LIBRO_DIARIO_5_1,
+    LIBRO_MAYOR_6_1,
     LIBRO_VENTAS_14_1,
     build_ple_filename,
 )
@@ -21,6 +23,7 @@ LIBRO_SELECTION = [
     ("14_1", "14.1 — Registro de Ventas e Ingresos"),
     ("8_1", "8.1 — Registro de Compras"),
     ("5_1", "5.1 — Libro Diario"),
+    ("6_1", "6.1 — Libro Mayor"),
 ]
 
 
@@ -29,6 +32,7 @@ _LIBRO_DISPATCH = {
     "14_1": (Ple14_1Generator, LIBRO_VENTAS_14_1),
     "8_1": (Ple8_1Generator, LIBRO_COMPRAS_8_1),
     "5_1": (Ple5_1Generator, LIBRO_DIARIO_5_1),
+    "6_1": (Ple6_1Generator, LIBRO_MAYOR_6_1),
 }
 
 
