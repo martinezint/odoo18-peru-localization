@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_l10n_pe_perception_tree" model="ir.ui.view">
+        <field name="name">l10n.pe.perception.list</field>
+        <field name="model">l10n.pe.perception</field>
+        <field name="arch" type="xml">
+            <list string="Comprobantes de Percepción">
+                <field name="name"/>
+                <field name="issue_date"/>
+                <field name="partner_id"/>
+                <field name="regime_code"/>
+                <field name="total_perception_amount" sum="Total percibido"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_l10n_pe_perception_form" model="ir.ui.view">
+        <field name="name">l10n.pe.perception.form</field>
+        <field name="model">l10n.pe.perception</field>
+        <field name="arch" type="xml">
+            <form string="Comprobante de Percepción">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="issue_date"/>
+                            <field name="partner_id"/>
+                            <field name="currency_id"/>
+                        </group>
+                        <group>
+                            <field name="regime_code"/>
+                            <field name="regime_percent"/>
+                            <field name="total_perception_amount" readonly="1"/>
+                            <field name="total_cashed" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="edi_document_id" readonly="1"
+                                   invisible="not edi_document_id"/>
+                        </group>
+                    </group>
+                    <field name="note_amount_in_words"/>
+                    <notebook>
+                        <page string="Documentos percibidos">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="doc_type_code"/>
+                                    <field name="doc_serie_number"/>
+                                    <field name="doc_issue_date"/>
+                                    <field name="doc_total_amount"/>
+                                    <field name="paid_amount"/>
+                                    <field name="paid_date"/>
+                                    <field name="perception_amount"/>
+                                    <field name="perception_date"/>
+                                    <field name="total_cashed" readonly="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_l10n_pe_perception" model="ir.actions.act_window">
+        <field name="name">Comprobantes de Percepción</field>
+        <field name="res_model">l10n.pe.perception</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_l10n_pe_perception"
+              name="Percepciones (PE)"
+              parent="account.menu_finance_receivables"
+              action="action_l10n_pe_perception"
+              sequence="81"/>
+
+</odoo>

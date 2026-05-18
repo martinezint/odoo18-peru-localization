@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_pe_retention_user,Retention (read),model_l10n_pe_retention,account.group_account_invoice,1,0,0,0
+access_l10n_pe_retention_manager,Retention (full),model_l10n_pe_retention,account.group_account_manager,1,1,1,1
+access_l10n_pe_retention_line_user,Retention line (read),model_l10n_pe_retention_line,account.group_account_invoice,1,0,0,0
+access_l10n_pe_retention_line_manager,Retention line (full),model_l10n_pe_retention_line,account.group_account_manager,1,1,1,1
+access_l10n_pe_perception_user,Perception (read),model_l10n_pe_perception,account.group_account_invoice,1,0,0,0
+access_l10n_pe_perception_manager,Perception (full),model_l10n_pe_perception,account.group_account_manager,1,1,1,1
+access_l10n_pe_perception_line_user,Perception line (read),model_l10n_pe_perception_line,account.group_account_invoice,1,0,0,0
+access_l10n_pe_perception_line_manager,Perception line (full),model_l10n_pe_perception_line,account.group_account_manager,1,1,1,1
