@@ -13,9 +13,10 @@ oca-deps/*
 !oca-deps/.gitkeep
 !oca-deps/README.md
 
-# Docker volumes locales
-data/
-volumes/
+# Docker volumes locales (anclar a raíz para NO ignorar addons/*/data/,
+# que son directorios de datos legítimos de los módulos Odoo)
+/data/
+/volumes/
 
 # Python
 __pycache__/

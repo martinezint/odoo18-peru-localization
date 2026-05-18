@@ -1,0 +1,5 @@
+"id","name","auto_apply","country_id","sequence","l10n_pe_regimen_tributario","name@es"
+"fp_pe_general","Régimen General","0","base.pe","20","general","Régimen General"
+"fp_pe_mype","Régimen MYPE Tributario","0","base.pe","21","mype","Régimen MYPE Tributario"
+"fp_pe_rer","Régimen Especial de Renta","0","base.pe","22","rer","Régimen Especial de Renta (RER)"
+"fp_pe_nrus","Nuevo RUS","0","base.pe","23","nrus","Nuevo Régimen Único Simplificado"

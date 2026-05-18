@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo noupdate="1">
+
+    <record id="ir_cron_l10n_pe_poll_gre_tickets" model="ir.cron">
+        <field name="name">Peru SUNAT: poll tickets GRE 2.0 (REST)</field>
+        <field name="model_id" ref="l10n_pe_edi.model_l10n_pe_edi_document"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_poll_gre_tickets()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="nextcall" eval="(DateTime.now() + relativedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

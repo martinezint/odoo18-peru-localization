@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+
+    Códigos SUNAT R.S. 183-2004 y modificatorias (vigentes a 2026).
+    Catálogo no exhaustivo: incluye los 20 códigos de uso más común.
+    Ampliable vía UI o data extension.
+-->
+<odoo noupdate="1">
+
+    <!-- ─── ANEXO 2: BIENES ───────────────────────────────────── -->
+    <record id="det_001" model="l10n.pe.detraccion.code">
+        <field name="code">001</field>
+        <field name="name">Azúcar y melaza de caña</field>
+        <field name="anexo">2</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_002" model="l10n.pe.detraccion.code">
+        <field name="code">002</field>
+        <field name="name">Arroz pilado</field>
+        <field name="anexo">2</field>
+        <field name="percentage">4.0</field>
+    </record>
+    <record id="det_003" model="l10n.pe.detraccion.code">
+        <field name="code">003</field>
+        <field name="name">Alcohol etílico</field>
+        <field name="anexo">2</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_004" model="l10n.pe.detraccion.code">
+        <field name="code">004</field>
+        <field name="name">Recursos hidrobiológicos</field>
+        <field name="anexo">2</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_005" model="l10n.pe.detraccion.code">
+        <field name="code">005</field>
+        <field name="name">Maíz amarillo duro</field>
+        <field name="anexo">2</field>
+        <field name="percentage">4.0</field>
+    </record>
+    <record id="det_008" model="l10n.pe.detraccion.code">
+        <field name="code">008</field>
+        <field name="name">Madera</field>
+        <field name="anexo">2</field>
+        <field name="percentage">4.0</field>
+    </record>
+    <record id="det_009" model="l10n.pe.detraccion.code">
+        <field name="code">009</field>
+        <field name="name">Arena y piedra</field>
+        <field name="anexo">2</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_010" model="l10n.pe.detraccion.code">
+        <field name="code">010</field>
+        <field name="name">Residuos, subproductos, desechos, recortes y desperdicios</field>
+        <field name="anexo">2</field>
+        <field name="percentage">15.0</field>
+    </record>
+    <record id="det_014" model="l10n.pe.detraccion.code">
+        <field name="code">014</field>
+        <field name="name">Carnes y despojos comestibles</field>
+        <field name="anexo">2</field>
+        <field name="percentage">4.0</field>
+    </record>
+    <record id="det_031" model="l10n.pe.detraccion.code">
+        <field name="code">031</field>
+        <field name="name">Oro gravado con IGV</field>
+        <field name="anexo">2</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_034" model="l10n.pe.detraccion.code">
+        <field name="code">034</field>
+        <field name="name">Minerales metálicos no auríferos</field>
+        <field name="anexo">2</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_035" model="l10n.pe.detraccion.code">
+        <field name="code">035</field>
+        <field name="name">Bienes exonerados del IGV</field>
+        <field name="anexo">2</field>
+        <field name="percentage">1.5</field>
+    </record>
+
+    <!-- ─── ANEXO 3: SERVICIOS ────────────────────────────────── -->
+    <record id="det_012" model="l10n.pe.detraccion.code">
+        <field name="code">012</field>
+        <field name="name">Intermediación laboral y tercerización</field>
+        <field name="anexo">3</field>
+        <field name="percentage">12.0</field>
+    </record>
+    <record id="det_019" model="l10n.pe.detraccion.code">
+        <field name="code">019</field>
+        <field name="name">Arrendamiento de bienes muebles e inmuebles</field>
+        <field name="anexo">3</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_020" model="l10n.pe.detraccion.code">
+        <field name="code">020</field>
+        <field name="name">Mantenimiento y reparación de bienes muebles</field>
+        <field name="anexo">3</field>
+        <field name="percentage">12.0</field>
+    </record>
+    <record id="det_021" model="l10n.pe.detraccion.code">
+        <field name="code">021</field>
+        <field name="name">Movimiento de carga</field>
+        <field name="anexo">3</field>
+        <field name="percentage">10.0</field>
+    </record>
+    <record id="det_022" model="l10n.pe.detraccion.code">
+        <field name="code">022</field>
+        <field name="name">Otros servicios empresariales</field>
+        <field name="anexo">3</field>
+        <field name="percentage">12.0</field>
+    </record>
+    <record id="det_025" model="l10n.pe.detraccion.code">
+        <field name="code">025</field>
+        <field name="name">Fabricación de bienes por encargo</field>
+        <field name="anexo">3</field>
+        <field name="percentage">12.0</field>
+    </record>
+    <record id="det_027" model="l10n.pe.detraccion.code">
+        <field name="code">027</field>
+        <field name="name">Servicio de transporte de carga</field>
+        <field name="anexo">3</field>
+        <field name="percentage">4.0</field>
+    </record>
+    <record id="det_037" model="l10n.pe.detraccion.code">
+        <field name="code">037</field>
+        <field name="name">Demás servicios gravados con IGV</field>
+        <field name="anexo">3</field>
+        <field name="percentage">12.0</field>
+    </record>
+
+</odoo>
