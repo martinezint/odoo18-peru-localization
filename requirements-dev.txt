@@ -2,9 +2,9 @@
 # pip install -r requirements-dev.txt
 
 pre-commit>=4.0,<5.0
-ruff>=0.13,<0.14
-pylint-odoo>=9.4,<10.0
-isort>=6.0,<7.0
+ruff>=0.13,<1.0
+pylint-odoo>=10.0,<11.0
+isort>=6.0,<9.0
 mkdocs>=1.6,<2.0
 mkdocs-material>=9.6,<10.0
 mkdocs-include-markdown-plugin>=7.0,<8.0

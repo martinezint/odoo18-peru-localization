@@ -54,12 +54,29 @@ jobs:
         with:
           path: l10n-peru-ce
 
-      - name: Install Python deps for EDI modules
+      - name: Install system deps for EDI (libxmlsec1 + headers)
         run: |
           apt-get update -qq
-          apt-get install -qqy libxmlsec1-dev pkg-config
+          apt-get install -qqy --no-install-recommends \
+            libxmlsec1-dev \
+            libxml2-dev \
+            libxslt1-dev \
+            python3-dev \
+            zlib1g-dev \
+            libssl-dev \
+            pkg-config \
+            build-essential
+
+      - name: Install Python deps (lxml + xmlsec from source para evitar version mismatch)
+        run: |
+          # --no-binary fuerza compilar contra el libxml2 del sistema; sin esto
+          # falla en runtime con 'lxml & xmlsec libxml2 library version mismatch'.
           pip install --break-system-packages \
-            python-xmlsec lxml zeep httpx qrcode signxml
+            --force-reinstall \
+            --no-binary=lxml,xmlsec \
+            lxml xmlsec
+          pip install --break-system-packages \
+            qrcode zeep httpx
 
       - name: Clone OCA dependencies
         run: |
@@ -80,12 +97,15 @@ jobs:
           PASSWORD: odoo
         run: |
           ADDONS_PATH=/github/workspace/l10n-peru-ce/addons,/github/workspace/l10n-peru-ce/oca-deps,/usr/lib/python3/dist-packages/odoo/addons
-          /entrypoint.sh odoo \
+          odoo \
             -d test_ci \
             --addons-path="$ADDONS_PATH" \
             --db_host=postgres --db_user=odoo --db_password=odoo \
             --init=${{ steps.mods.outputs.list }} \
             --test-enable \
+            --test-tags=${{ steps.mods.outputs.list }} \
             --stop-after-init \
             --no-http \
+            --workers=0 \
+            --max-cron-threads=0 \
             --log-level=warn
