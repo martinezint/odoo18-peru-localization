@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_account_tax_form_l10n_pe_extras" model="ir.ui.view">
+        <field name="name">account.tax.form.l10n.pe.extras</field>
+        <field name="model">account.tax</field>
+        <field name="inherit_id" ref="account.view_tax_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tax_group_id']" position="after">
+                <field name="l10n_pe_tax_kind"
+                       invisible="country_id and country_id.code != 'PE'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_tax_tree_l10n_pe_extras" model="ir.ui.view">
+        <field name="name">account.tax.list.l10n.pe.extras</field>
+        <field name="model">account.tax</field>
+        <field name="inherit_id" ref="account.view_tax_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type_tax_use']" position="after">
+                <field name="l10n_pe_tax_kind" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
