@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_company_form_l10n_pe_edi" model="ir.ui.view">
+        <field name="name">res.company.form.l10n.pe.edi</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="l10n_pe_base_extras.view_company_form_l10n_pe_extras"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_pe_apisnet_token']" position="after">
+                <group string="Facturación electrónica SUNAT" col="2">
+                    <field name="l10n_pe_edi_environment"/>
+                    <field name="l10n_pe_edi_cert_pfx"
+                           filename="l10n_pe_edi_cert_filename"/>
+                    <field name="l10n_pe_edi_cert_filename" invisible="1"/>
+                    <field name="l10n_pe_edi_cert_password" password="True"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

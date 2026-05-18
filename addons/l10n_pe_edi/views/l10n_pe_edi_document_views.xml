@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_l10n_pe_edi_document_tree" model="ir.ui.view">
+        <field name="name">l10n.pe.edi.document.list</field>
+        <field name="model">l10n.pe.edi.document</field>
+        <field name="arch" type="xml">
+            <list string="Documentos EDI SUNAT" create="0" edit="0">
+                <field name="name"/>
+                <field name="move_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('signed', 'sent')"
+                       decoration-success="state == 'accepted'"
+                       decoration-danger="state in ('rejected', 'error')"/>
+                <field name="last_action_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_l10n_pe_edi_document_form" model="ir.ui.view">
+        <field name="name">l10n.pe.edi.document.form</field>
+        <field name="model">l10n.pe.edi.document</field>
+        <field name="arch" type="xml">
+            <form string="Documento EDI" create="0" edit="0">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,signed,sent,accepted"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="move_id"/>
+                        <field name="last_action_at"/>
+                    </group>
+                    <group string="Archivos" col="2">
+                        <field name="xml_unsigned" filename="name"
+                               invisible="not xml_unsigned"/>
+                        <field name="xml_signed" filename="name"/>
+                        <field name="digest_value"/>
+                    </group>
+                    <group string="Error" invisible="not error_message">
+                        <field name="error_message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_l10n_pe_edi_document" model="ir.actions.act_window">
+        <field name="name">Documentos EDI SUNAT</field>
+        <field name="res_model">l10n.pe.edi.document</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_l10n_pe_edi_document"
+              name="Documentos EDI SUNAT"
+              parent="account.menu_finance_reports"
+              action="action_l10n_pe_edi_document"
+              sequence="200"/>
+
+</odoo>

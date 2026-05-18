@@ -21,7 +21,12 @@ services:
       retries: 10
 
   odoo:
-    image: odoo:18.0
+    # Imagen propia con libxmlsec1 + xmlsec/lxml recompilados (firma XAdES).
+    # Ver Dockerfile en la raíz del repo.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: odoo-l10n-pe-ce:18.0
     container_name: l10npe-odoo
     restart: unless-stopped
     depends_on:
