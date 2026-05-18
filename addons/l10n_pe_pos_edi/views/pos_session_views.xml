@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_pos_session_form_l10n_pe_rc" model="ir.ui.view">
+        <field name="name">pos.session.form.l10n.pe.rc</field>
+        <field name="model">pos.session</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_session_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_l10n_pe_open_rc_wizard"
+                        type="object"
+                        string="Generar RC del cierre"
+                        class="oe_highlight"
+                        invisible="state != 'closed'"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

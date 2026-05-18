@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_l10n_pe_rc_wizard_form" model="ir.ui.view">
+        <field name="name">l10n.pe.rc.wizard.form</field>
+        <field name="model">l10n.pe.rc.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar Resumen Diario de Boletas (RC)">
+                <group>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="reference_date"/>
+                    <field name="issue_date"/>
+                    <field name="correlativo"/>
+                    <field name="sign_xml"/>
+                </group>
+                <group string="Resultado" invisible="not xml_data">
+                    <field name="boletas_count" readonly="1"/>
+                    <field name="xml_filename" readonly="1"/>
+                    <field name="xml_data" filename="xml_filename" readonly="1"/>
+                    <field name="edi_document_id" readonly="1"
+                           invisible="not edi_document_id"/>
+                </group>
+                <footer>
+                    <button name="action_generate"
+                            type="object"
+                            string="Generar RC"
+                            class="btn-primary"/>
+                    <button special="cancel" string="Cerrar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_l10n_pe_rc_wizard" model="ir.actions.act_window">
+        <field name="name">Generar Resumen Diario Boletas (PE)</field>
+        <field name="res_model">l10n.pe.rc.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_l10n_pe_rc_wizard"
+              name="Resumen Diario Boletas (PE)"
+              parent="account.menu_finance_reports"
+              action="action_l10n_pe_rc_wizard"
+              sequence="225"/>
+
+</odoo>
