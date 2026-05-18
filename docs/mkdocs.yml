@@ -1,0 +1,80 @@
+site_name: Odoo 18 CE — Localización Perú
+site_description: Localización peruana completa para Odoo 18 Community Edition
+site_url: https://your-org.github.io/odoo-l10n-peru-ce/
+repo_url: https://github.com/your-org/odoo-l10n-peru-ce
+repo_name: your-org/odoo-l10n-peru-ce
+copyright: Copyright &copy; 2026 — AGPL-3.0
+
+docs_dir: .
+
+theme:
+  name: material
+  language: es
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Modo oscuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Modo claro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+nav:
+  - Inicio: index.md
+  - Instalación: installation.md
+  - Módulos:
+    - Fase 1 — Fundacionales:
+      - modules/l10n_pe_base_extras.md
+      - modules/l10n_pe_coa_pcge2019.md
+      - modules/l10n_pe_taxes_extras.md
+    - Fase 2 — EDI núcleo:
+      - modules/l10n_pe_edi.md
+      - modules/l10n_pe_edi_transport_sunat_soap.md
+      - modules/l10n_pe_detracciones.md
+      - modules/l10n_pe_exchange_rate_sbs.md
+      - modules/l10n_pe_partner_inbox.md
+    - Fase 3 — GRE, retenciones, libros:
+      - modules/l10n_pe_edi_gre.md
+      - modules/l10n_pe_edi_retention.md
+      - modules/l10n_pe_sire.md
+      - modules/l10n_pe_ple.md
+    - Fase 4 — POS y reportes:
+      - modules/l10n_pe_pos_edi.md
+      - modules/l10n_pe_reports_pdf.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search:
+      lang: es
+  - include-markdown

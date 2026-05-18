@@ -1,0 +1,60 @@
+# Secrets / runtime
+.env
+.env.local
+*.local
+
+# Certificados de firma — NUNCA commitear
+certificates/*
+!certificates/.gitkeep
+!certificates/README.md
+
+# Dependencias OCA externas (cada dev las clona)
+oca-deps/*
+!oca-deps/.gitkeep
+!oca-deps/README.md
+
+# Docker volumes locales
+data/
+volumes/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# Tests / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Docs build
+site/
+docs/_build/
+
+# Odoo runtime
+*.pyc
+*.pot
+*.po~
+filestore/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,47 @@
+# Stack de desarrollo para l10n-peru-ce.
+# Puertos 8169/8172 para no chocar con otro Odoo en 8069/8072.
+# DB en puerto interno 5432 (no expuesto). Cambia .env antes de levantar.
+
+services:
+  db:
+    image: postgres:16
+    container_name: l10npe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  odoo:
+    image: odoo:18.0
+    container_name: l10npe-odoo
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${ODOO_HTTP_PORT:-8169}:8069"
+      - "${ODOO_LONGPOLL_PORT:-8172}:8072"
+    environment:
+      HOST: db
+      USER: ${POSTGRES_USER:-odoo}
+      PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - ./config:/etc/odoo:ro
+      - ./addons:/mnt/extra-addons/l10n-peru-ce:ro
+      - ./oca-deps:/mnt/extra-addons/oca-deps:ro
+      - ./certificates:/opt/odoo/certificates:ro
+      - filestore:/var/lib/odoo
+    command: odoo --config=/etc/odoo/odoo.conf
+
+volumes:
+  pgdata:
+  filestore:

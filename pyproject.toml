@@ -1,0 +1,70 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = [
+    "oca-deps",
+    "certificates",
+    "addons/**/i18n",
+    "addons/**/static",
+    "addons/**/__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "UP",    # pyupgrade
+    "PL",    # pylint
+    "RUF",   # ruff-specific
+]
+ignore = [
+    "E501",     # line-too-long (Odoo allows longer for translatable strings)
+    "PLR0913",  # too-many-arguments (Odoo signatures often need many)
+    "PLR2004",  # magic-value-comparison
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"__manifest__.py" = ["B018"]
+"addons/**/tests/*.py" = ["PLR2004"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "l10n_pe_base_extras",
+    "l10n_pe_coa_pcge2019",
+    "l10n_pe_taxes_extras",
+    "l10n_pe_detracciones",
+    "l10n_pe_exchange_rate_sbs",
+    "l10n_pe_partner_inbox",
+    "l10n_pe_edi",
+    "l10n_pe_edi_transport_sunat_soap",
+    "l10n_pe_edi_gre",
+    "l10n_pe_edi_retention",
+    "l10n_pe_sire",
+    "l10n_pe_ple",
+    "l10n_pe_pos_edi",
+    "l10n_pe_reports_pdf",
+]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.coverage.run]
+source = ["addons"]
+omit = [
+    "*/__manifest__.py",
+    "*/tests/*",
+    "*/migrations/*",
+    "oca-deps/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

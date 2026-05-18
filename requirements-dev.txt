@@ -1,0 +1,10 @@
+# Herramientas de desarrollo (instalar fuera del container Odoo)
+# pip install -r requirements-dev.txt
+
+pre-commit>=4.0,<5.0
+ruff>=0.13,<0.14
+pylint-odoo>=9.4,<10.0
+isort>=6.0,<7.0
+mkdocs>=1.6,<2.0
+mkdocs-material>=9.6,<10.0
+mkdocs-include-markdown-plugin>=7.0,<8.0

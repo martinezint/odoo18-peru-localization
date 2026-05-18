@@ -1,0 +1,20 @@
+# Copia a docker-compose.override.yml para customizaciones locales.
+# Útil para: instalar deps Python extra (signxml/xmlsec/zeep) en el container,
+# montar carpetas locales adicionales, exponer DB para debugging, etc.
+
+services:
+  odoo:
+    # Exemplo: instalar deps Python al arranque (slow, mejor build de imagen propia)
+    # entrypoint:
+    #   - /bin/bash
+    #   - -c
+    #   - "pip install --user lxml zeep httpx qrcode python-xmlsec && /entrypoint.sh odoo --config=/etc/odoo/odoo.conf"
+
+    # Montar otro repo local de addons
+    # volumes:
+    #   - /Users/yo/otro-addon:/mnt/extra-addons/otro-addon:ro
+
+  # Exponer Postgres a localhost para conectar con DBeaver/psql
+  # db:
+  #   ports:
+  #     - "${POSTGRES_HOST_PORT:-5433}:5432"

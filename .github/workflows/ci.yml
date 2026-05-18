@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (pre-commit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: pre-commit run --all-files --show-diff-on-failure
+
+  test:
+    name: Test (Odoo 18 + PG ${{ matrix.pg }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pg: ["15", "16"]
+    services:
+      postgres:
+        image: postgres:${{ matrix.pg }}
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    container:
+      image: odoo:18.0
+      options: --user root
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: l10n-peru-ce
+
+      - name: Install Python deps for EDI modules
+        run: |
+          apt-get update -qq
+          apt-get install -qqy libxmlsec1-dev pkg-config
+          pip install --break-system-packages \
+            python-xmlsec lxml zeep httpx qrcode signxml
+
+      - name: Clone OCA dependencies
+        run: |
+          cd l10n-peru-ce
+          chmod +x scripts/install_oca_deps.sh
+          ./scripts/install_oca_deps.sh
+
+      - name: Discover our modules
+        id: mods
+        run: |
+          cd l10n-peru-ce/addons
+          echo "list=$(ls -d */ | tr -d '/' | tr '\n' ',' | sed 's/,$//')" >> $GITHUB_OUTPUT
+
+      - name: Run Odoo tests
+        env:
+          HOST: postgres
+          USER: odoo
+          PASSWORD: odoo
+        run: |
+          ADDONS_PATH=/github/workspace/l10n-peru-ce/addons,/github/workspace/l10n-peru-ce/oca-deps,/usr/lib/python3/dist-packages/odoo/addons
+          /entrypoint.sh odoo \
+            -d test_ci \
+            --addons-path="$ADDONS_PATH" \
+            --db_host=postgres --db_user=odoo --db_password=odoo \
+            --init=${{ steps.mods.outputs.list }} \
+            --test-enable \
+            --stop-after-init \
+            --no-http \
+            --log-level=warn
