@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <!-- Botón visible en la lista de facturas de compra para abrir el wizard -->
+    <record id="view_account_move_list_l10n_pe_inbox" model="ir.ui.view">
+        <field name="name">account.move.list.l10n.pe.inbox</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <header>
+                    <button name="%(l10n_pe_partner_inbox.action_l10n_pe_upload_supplier_xml)d"
+                            type="action"
+                            string="Importar XML proveedor (PE)"
+                            class="oe_highlight"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
