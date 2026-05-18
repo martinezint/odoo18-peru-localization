@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_account_fiscal_position_form_l10n_pe" model="ir.ui.view">
+        <field name="name">account.fiscal.position.form.l10n.pe</field>
+        <field name="model">account.fiscal.position</field>
+        <field name="inherit_id" ref="account.view_account_position_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='country_id']" position="after">
+                <field name="l10n_pe_regimen_tributario"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_fiscal_position_tree_l10n_pe" model="ir.ui.view">
+        <field name="name">account.fiscal.position.list.l10n.pe</field>
+        <field name="model">account.fiscal.position</field>
+        <field name="inherit_id" ref="account.view_account_position_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="l10n_pe_regimen_tributario" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
