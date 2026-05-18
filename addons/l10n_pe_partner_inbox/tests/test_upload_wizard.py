@@ -6,7 +6,7 @@ import base64
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase, tagged
 
-from .test_ubl_parser import SAMPLE_INVOICE_XML, SAMPLE_CREDIT_NOTE_XML
+from .test_ubl_parser import SAMPLE_CREDIT_NOTE_XML, SAMPLE_INVOICE_XML
 
 
 @tagged("post_install", "-at_install", "l10n_pe_partner_inbox")
@@ -19,11 +19,13 @@ class TestUploadWizard(TransactionCase):
         cls.Wizard = cls.env["l10n.pe.upload.supplier.xml"]
 
     def _make_wizard(self, xml_bytes, filename="test.xml", auto_create=True):
-        return self.Wizard.create({
-            "xml_file": base64.b64encode(xml_bytes),
-            "xml_filename": filename,
-            "auto_create_partner": auto_create,
-        })
+        return self.Wizard.create(
+            {
+                "xml_file": base64.b64encode(xml_bytes),
+                "xml_filename": filename,
+                "auto_create_partner": auto_create,
+            }
+        )
 
     def test_creates_draft_bill_from_invoice(self):
         wizard = self._make_wizard(SAMPLE_INVOICE_XML)
@@ -61,17 +63,20 @@ class TestUploadWizard(TransactionCase):
         existing = self.env["res.partner"].search([("vat", "=", ruc)])
         existing.unlink()
         # Crea partner manualmente
-        partner = self.env["res.partner"].create({
-            "name": "Existing Partner Name",
-            "vat": ruc,
-            "country_id": self.env.ref("base.pe").id,
-            "l10n_latam_identification_type_id": self.env.ref("l10n_pe.it_RUC").id,
-        })
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Existing Partner Name",
+                "vat": ruc,
+                "country_id": self.env.ref("base.pe").id,
+                "l10n_latam_identification_type_id": self.env.ref("l10n_pe.it_RUC").id,
+            }
+        )
         wizard = self._make_wizard(SAMPLE_INVOICE_XML)
         action = wizard.action_parse_and_create()
         move = self.env["account.move"].browse(action["res_id"])
-        self.assertEqual(move.partner_id, partner,
-                         "Debe reusar el partner existente, no crear duplicado")
+        self.assertEqual(
+            move.partner_id, partner, "Debe reusar el partner existente, no crear duplicado"
+        )
 
     def test_raises_when_auto_create_off_and_partner_unknown(self):
         ruc = "20131312955"
@@ -88,10 +93,12 @@ class TestUploadWizard(TransactionCase):
         wizard = self._make_wizard(SAMPLE_INVOICE_XML, filename="invoice.xml")
         action = wizard.action_parse_and_create()
         move = self.env["account.move"].browse(action["res_id"])
-        attachments = self.env["ir.attachment"].search([
-            ("res_model", "=", "account.move"),
-            ("res_id", "=", move.id),
-        ])
+        attachments = self.env["ir.attachment"].search(
+            [
+                ("res_model", "=", "account.move"),
+                ("res_id", "=", move.id),
+            ]
+        )
         self.assertTrue(attachments, "Debe haber adjunto un XML al move")
         xml_attach = attachments.filtered(lambda a: a.mimetype == "application/xml")
         self.assertTrue(xml_attach)

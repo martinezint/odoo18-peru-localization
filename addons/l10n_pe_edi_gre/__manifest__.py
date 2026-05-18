@@ -3,10 +3,10 @@
 {
     "name": "Peru - GRE 2.0: REST + UBL DespatchAdvice (Remitente)",
     "summary": "Cliente REST + OAuth2 SUNAT GRE 2.0 + UBL DespatchAdvice 2.1 "
-               "para GRE Remitente desde stock.picking. Token cache con "
-               "refresh. Métodos send_gre, get_status, download_file. "
-               "v1: infra REST + builder GRE Remitente. GRE Transportista "
-               "(31) usa la misma infra REST; UBL queda para v2.",
+    "para GRE Remitente desde stock.picking. Token cache con "
+    "refresh. Métodos send_gre, get_status, download_file. "
+    "v1: infra REST + builder GRE Remitente. GRE Transportista "
+    "(31) usa la misma infra REST; UBL queda para v2.",
     "version": "18.0.0.2.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

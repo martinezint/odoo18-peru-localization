@@ -6,15 +6,12 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
-from ..services.ubl_builder import (
-    Invoice as UblInvoice,
-    InvoiceLine as UblLine,
-    Party,
-    UblInvoiceBuilder,
-)
+from ..services.ubl_builder import Invoice as UblInvoice
+from ..services.ubl_builder import InvoiceLine as UblLine
+from ..services.ubl_builder import Party, UblInvoiceBuilder
 
 _logger = logging.getLogger(__name__)
 
@@ -70,22 +67,23 @@ class AccountMove(models.Model):
 
         # 3. Persist
         from lxml import etree
-        xml_bytes = etree.tostring(
-            root, xml_declaration=True, encoding="UTF-8", standalone=False
-        )
+
+        xml_bytes = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=False)
 
         Doc = self.env["l10n.pe.edi.document"]
         if not doc:
             doc = Doc.create({"move_id": self.id})
             self.l10n_pe_edi_document_id = doc.id
 
-        doc.write({
-            "name": doc._build_sunat_filename(self),
-            "xml_signed": base64.b64encode(xml_bytes),
-            "state": "signed",
-            "last_action_at": fields.Datetime.now(),
-            "error_message": False,
-        })
+        doc.write(
+            {
+                "name": doc._build_sunat_filename(self),
+                "xml_signed": base64.b64encode(xml_bytes),
+                "state": "signed",
+                "last_action_at": fields.Datetime.now(),
+                "error_message": False,
+            }
+        )
         _logger.info("EDI generado y firmado para %s: %s", self.name, doc.name)
         return doc
 
@@ -100,9 +98,7 @@ class AccountMove(models.Model):
         # Serie + número desde move.name (formato Odoo: "F001/00000001" → "F001-1")
         serie_number = (self.name or "").replace("/", "-").lstrip("-")
         if not serie_number:
-            raise UserError(_(
-                "El comprobante no tiene nombre/secuencia asignado."
-            ))
+            raise UserError(_("El comprobante no tiene nombre/secuencia asignado."))
 
         now = datetime.now()
         ubl = UblInvoice(
@@ -119,23 +115,27 @@ class AccountMove(models.Model):
         total_line = Decimal("0")
         total_igv = Decimal("0")
         for idx, line in enumerate(
-            self.invoice_line_ids.filtered(lambda l: not l.display_type), start=1
+            self.invoice_line_ids.filtered(lambda ln: not ln.display_type), start=1
         ):
             line_amt = Decimal(str(line.price_subtotal))
             # Asumimos IGV 18% si las taxes contienen alguno gravado.
             has_igv = any(t.amount == 18 for t in line.tax_ids)
-            igv_amt = (line_amt * Decimal("0.18")).quantize(Decimal("0.01")) if has_igv else Decimal("0")
-            ubl.lines.append(UblLine(
-                line_id=idx,
-                description=line.name or "Sin descripción",
-                quantity=Decimal(str(line.quantity)),
-                unit_code="NIU",
-                unit_price=Decimal(str(line.price_unit)),
-                line_extension_amount=line_amt,
-                igv_amount=igv_amt,
-                igv_affectation_code="10" if has_igv else "30",
-                igv_percentage=Decimal("18") if has_igv else Decimal("0"),
-            ))
+            igv_amt = (
+                (line_amt * Decimal("0.18")).quantize(Decimal("0.01")) if has_igv else Decimal("0")
+            )
+            ubl.lines.append(
+                UblLine(
+                    line_id=idx,
+                    description=line.name or "Sin descripción",
+                    quantity=Decimal(str(line.quantity)),
+                    unit_code="NIU",
+                    unit_price=Decimal(str(line.price_unit)),
+                    line_extension_amount=line_amt,
+                    igv_amount=igv_amt,
+                    igv_affectation_code="10" if has_igv else "30",
+                    igv_percentage=Decimal("18") if has_igv else Decimal("0"),
+                )
+            )
             total_line += line_amt
             total_igv += igv_amt
 
@@ -160,7 +160,7 @@ class AccountMove(models.Model):
 
     def _l10n_pe_edi_party_from_partner(self) -> Party:
         p = self.partner_id
-        code = (p.l10n_latam_identification_type_id.l10n_pe_vat_code or "6")
+        code = p.l10n_latam_identification_type_id.l10n_pe_vat_code or "6"
         return Party(
             ruc=(p.vat or "").strip(),
             doc_type_code=code,

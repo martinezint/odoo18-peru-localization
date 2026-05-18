@@ -36,20 +36,21 @@ Ejemplo:
 
 (Documentación SUNAT vigente: RS 286-2009 y modificatorias.)
 """
+
 from __future__ import annotations
 
 # Códigos SUNAT de libros (sub-libros) tal como aparecen en el nombre del archivo PLE.
 LIBRO_VENTAS_14_1 = "140100"
 LIBRO_COMPRAS_8_1 = "080100"
-LIBRO_COMPRAS_8_2 = "080200"          # No domiciliados
+LIBRO_COMPRAS_8_2 = "080200"  # No domiciliados
 LIBRO_DIARIO_5_1 = "050100"
 LIBRO_DIARIO_SIMPL_5_3 = "050300"
 LIBRO_MAYOR_6_1 = "060100"
 LIBRO_INV_BAL_3_1 = "030100"
 
 # Periodicidad
-PERIODICITY_MONTHLY = "monthly"   # YYYYMM00
-PERIODICITY_ANNUAL = "annual"     # YYYY1200
+PERIODICITY_MONTHLY = "monthly"  # YYYYMM00
+PERIODICITY_ANNUAL = "annual"  # YYYY1200
 
 
 def build_ple_filename(
@@ -59,7 +60,7 @@ def build_ple_filename(
     libro_code: str,
     has_movements: bool = True,
     has_info: bool = True,
-    currency_indicator: str = "1",   # 1=PEN
+    currency_indicator: str = "1",  # 1=PEN
     periodicity: str = PERIODICITY_MONTHLY,
 ) -> str:
     """Construye el nombre PLE SUNAT.

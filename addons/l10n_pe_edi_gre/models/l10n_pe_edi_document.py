@@ -1,7 +1,6 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-import base64
 import logging
 
 from odoo import _, api, fields, models
@@ -18,7 +17,7 @@ class L10nPeEdiDocument(models.Model):
         readonly=True,
         copy=False,
         help="Ticket asíncrono devuelto por SUNAT al enviar la GRE. "
-             "Se usa para consultar el estado vía GET /envios/<ticket>.",
+        "Se usa para consultar el estado vía GET /envios/<ticket>.",
     )
     gre_ind_estado = fields.Selection(
         selection=[
@@ -36,7 +35,7 @@ class L10nPeEdiDocument(models.Model):
         attachment=True,
         readonly=True,
         help="CDR (Constancia de Recepción) GRE devuelto por SUNAT cuando el "
-             "documento es aceptado o rechazado.",
+        "documento es aceptado o rechazado.",
     )
     gre_cdr_filename = fields.Char(
         string="GRE CDR filename",
@@ -84,7 +83,9 @@ class L10nPeEdiDocument(models.Model):
         elif status.is_rejected:
             vals["state"] = "rejected"
             err = status.error or {}
-            vals["error_message"] = err.get("desError") or err.get("numError") or "Rechazado por SUNAT"
+            vals["error_message"] = (
+                err.get("desError") or err.get("numError") or "Rechazado por SUNAT"
+            )
         elif status.is_cancelled:
             vals["state"] = "error"
             vals["error_message"] = _("GRE anulada en SUNAT")
@@ -98,10 +99,12 @@ class L10nPeEdiDocument(models.Model):
         Errores por doc se loggean; el cron no se detiene.
         Llamado por ir.cron 'Peru SUNAT: poll tickets GRE'.
         """
-        pending = self.search([
-            ("gre_ticket", "!=", False),
-            ("gre_ind_estado", "=", "01"),
-        ])
+        pending = self.search(
+            [
+                ("gre_ticket", "!=", False),
+                ("gre_ind_estado", "=", "01"),
+            ]
+        )
         if not pending:
             _logger.debug("cron_poll_gre_tickets: nada pendiente.")
             return
@@ -112,5 +115,6 @@ class L10nPeEdiDocument(models.Model):
             except Exception:
                 _logger.exception(
                     "Fallo polling GRE ticket %s (doc %s)",
-                    doc.gre_ticket, doc.name,
+                    doc.gre_ticket,
+                    doc.name,
                 )

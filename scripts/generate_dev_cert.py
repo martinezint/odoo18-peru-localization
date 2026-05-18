@@ -12,11 +12,12 @@ Uso:
 
 Idempotente: si el archivo ya existe, no lo regenera.
 """
+
 from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 DEFAULT_OUTPUT = Path(__file__).resolve().parent.parent / "certificates" / "dev_cert.pfx"
@@ -31,15 +32,15 @@ def generate(output: Path, password: bytes) -> None:
     from cryptography.hazmat.primitives.serialization import pkcs12
     from cryptography.x509.oid import NameOID
 
-    key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend()
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "PE"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "l10n-peru-ce DEV"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "Development Self-Signed (NOT FOR PRODUCTION)"),
+        ]
     )
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COUNTRY_NAME, "PE"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "l10n-peru-ce DEV"),
-        x509.NameAttribute(NameOID.COMMON_NAME, "Development Self-Signed (NOT FOR PRODUCTION)"),
-    ])
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -48,9 +49,7 @@ def generate(output: Path, password: bytes) -> None:
         .serial_number(x509.random_serial_number())
         .not_valid_before(now - timedelta(days=1))
         .not_valid_after(now + timedelta(days=365 * 5))
-        .add_extension(
-            x509.BasicConstraints(ca=False, path_length=None), critical=True
-        )
+        .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -86,8 +85,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--password", type=str, default=DEFAULT_PASSWORD.decode())
-    parser.add_argument("--force", action="store_true",
-                        help="Regenerar incluso si ya existe")
+    parser.add_argument("--force", action="store_true", help="Regenerar incluso si ya existe")
     args = parser.parse_args()
 
     if args.output.exists() and not args.force:

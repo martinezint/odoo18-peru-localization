@@ -10,47 +10,63 @@ from odoo.tests.common import TransactionCase, tagged
 
 @tagged("post_install", "-at_install", "l10n_pe_ple")
 class TestPleWizard(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test PLE Wizard Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test PLE Wizard Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "CLI W SAC",
-            "country_id": cls.pe.id,
-            "vat": "20100047218",
-            "l10n_latam_identification_type_id": cls.env.ref("l10n_pe.it_RUC").id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "CLI W SAC",
+                "country_id": cls.pe.id,
+                "vat": "20100047218",
+                "l10n_latam_identification_type_id": cls.env.ref("l10n_pe.it_RUC").id,
+            }
+        )
         # 1 venta abril 2026 (bypass validación l10n_latam via SQL)
-        m = cls.env["account.move"].with_company(cls.company).create({
-            "move_type": "out_invoice",
-            "partner_id": cls.partner.id,
-            "company_id": cls.company.id,
-            "invoice_date": date(2026, 4, 10),
-            "date": date(2026, 4, 10),
-            "invoice_line_ids": [(0, 0, {
-                "name": "X", "quantity": 1, "price_unit": 100.0, "tax_ids": [],
-            })],
-        })
-        cls.env.cr.execute(
-            "UPDATE account_move SET state='posted' WHERE id=%s", (m.id,)
+        m = (
+            cls.env["account.move"]
+            .with_company(cls.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": cls.partner.id,
+                    "company_id": cls.company.id,
+                    "invoice_date": date(2026, 4, 10),
+                    "date": date(2026, 4, 10),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "X",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
         )
+        cls.env.cr.execute("UPDATE account_move SET state='posted' WHERE id=%s", (m.id,))
         m.invalidate_recordset()
 
     def _make_wizard(self, period="202604", libro="14_1"):
-        return self.env["l10n.pe.ple.wizard"].create({
-            "company_id": self.company.id,
-            "period_yyyymm": period,
-            "libro": libro,
-        })
+        return self.env["l10n.pe.ple.wizard"].create(
+            {
+                "company_id": self.company.id,
+                "period_yyyymm": period,
+                "libro": libro,
+            }
+        )
 
     def test_generate_returns_file(self):
         wiz = self._make_wizard()
@@ -80,15 +96,19 @@ class TestPleWizard(TransactionCase):
             wiz.action_generate()
 
     def test_company_without_ruc_raises(self):
-        co = self.env["res.company"].create({
-            "name": "NoRUC",
-            "country_id": self.pe.id,
-        })
-        wiz = self.env["l10n.pe.ple.wizard"].create({
-            "company_id": co.id,
-            "period_yyyymm": "202604",
-            "libro": "14_1",
-        })
+        co = self.env["res.company"].create(
+            {
+                "name": "NoRUC",
+                "country_id": self.pe.id,
+            }
+        )
+        wiz = self.env["l10n.pe.ple.wizard"].create(
+            {
+                "company_id": co.id,
+                "period_yyyymm": "202604",
+                "libro": "14_1",
+            }
+        )
         with self.assertRaisesRegex(UserError, "RUC"):
             wiz.action_generate()
 

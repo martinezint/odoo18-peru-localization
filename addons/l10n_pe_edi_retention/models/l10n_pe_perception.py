@@ -1,8 +1,7 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from odoo import _, api, fields, models
-
+from odoo import api, fields, models
 
 PERCEPTION_REGIME_SELECTION = [
     ("01", "Venta Interna (2%)"),
@@ -93,8 +92,11 @@ class L10nPePerception(models.Model):
     )
 
     _sql_constraints = [
-        ("name_company_unique", "UNIQUE(name, company_id)",
-         "Ya existe una percepción con ese número en esta empresa."),
+        (
+            "name_company_unique",
+            "UNIQUE(name, company_id)",
+            "Ya existe una percepción con ese número en esta empresa.",
+        ),
     ]
 
     @api.depends("line_ids.perception_amount", "line_ids.total_cashed")

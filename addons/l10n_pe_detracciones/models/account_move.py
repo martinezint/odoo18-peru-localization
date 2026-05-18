@@ -18,7 +18,7 @@ class AccountMove(models.Model):
         store=True,
         readonly=False,
         help="Tomado del producto principal de la factura. Editable manualmente "
-             "si la factura tiene productos con códigos distintos.",
+        "si la factura tiene productos con códigos distintos.",
     )
     l10n_pe_detraccion_amount = fields.Monetary(
         string="Monto Detracción",
@@ -37,7 +37,7 @@ class AccountMove(models.Model):
         string="N° Constancia Depósito",
         copy=False,
         help="Número de la constancia de depósito en el Banco de la Nación. "
-             "Imprescindible para usar el crédito fiscal del IGV.",
+        "Imprescindible para usar el crédito fiscal del IGV.",
     )
     l10n_pe_detraccion_date = fields.Date(
         string="Fecha Depósito",
@@ -47,8 +47,9 @@ class AccountMove(models.Model):
 
     # ─── Cálculo automático ────────────────────────────────────────────
 
-    @api.depends("invoice_line_ids.product_id.l10n_pe_detraccion_code_id",
-                 "amount_total", "move_type")
+    @api.depends(
+        "invoice_line_ids.product_id.l10n_pe_detraccion_code_id", "amount_total", "move_type"
+    )
     def _compute_l10n_pe_detraccion(self):
         for move in self:
             # Solo aplica a facturas de compra (recibimos comprobantes con
@@ -70,9 +71,7 @@ class AccountMove(models.Model):
 
             move.l10n_pe_detraccion_code_id = code
             if code and move.amount_total > DETRACCION_MIN_AMOUNT:
-                move.l10n_pe_detraccion_amount = (
-                    move.amount_total * code.percentage / 100.0
-                )
+                move.l10n_pe_detraccion_amount = move.amount_total * code.percentage / 100.0
                 move.l10n_pe_detraccion_has_application = True
             else:
                 move.l10n_pe_detraccion_amount = 0.0
@@ -89,16 +88,20 @@ class AccountMove(models.Model):
         """
         result = super()._post(soft=soft)
         for move in self:
-            if (move.l10n_pe_detraccion_has_application
-                    and not move.l10n_pe_detraccion_constancia
-                    and move.move_type in ("in_invoice", "in_refund")):
-                move.message_post(body=_(
-                    "⚠️ Esta factura está sujeta a detracción (%(code)s, %(amount)s %(curr)s) "
-                    "y aún no tiene número de constancia de depósito. "
-                    "Recuerda registrar la constancia al efectuar el pago en el "
-                    "Banco de la Nación para poder usar el crédito fiscal del IGV.",
-                    code=move.l10n_pe_detraccion_code_id.display_name,
-                    amount=move.l10n_pe_detraccion_amount,
-                    curr=move.currency_id.symbol,
-                ))
+            if (
+                move.l10n_pe_detraccion_has_application
+                and not move.l10n_pe_detraccion_constancia
+                and move.move_type in ("in_invoice", "in_refund")
+            ):
+                move.message_post(
+                    body=_(
+                        "⚠️ Esta factura está sujeta a detracción (%(code)s, %(amount)s %(curr)s) "
+                        "y aún no tiene número de constancia de depósito. "
+                        "Recuerda registrar la constancia al efectuar el pago en el "
+                        "Banco de la Nación para poder usar el crédito fiscal del IGV.",
+                        code=move.l10n_pe_detraccion_code_id.display_name,
+                        amount=move.l10n_pe_detraccion_amount,
+                        curr=move.currency_id.symbol,
+                    )
+                )
         return result

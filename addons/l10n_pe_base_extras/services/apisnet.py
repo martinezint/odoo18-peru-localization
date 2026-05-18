@@ -8,13 +8,13 @@ desde 2024 (https://apis.net.pe/api-token, free tier ~100 req/día).
 El cliente es deliberadamente delgado: solo conoce HTTP. La normalización al
 modelo de Odoo (matching de ubigeo, escritura de campos) vive en res.partner.
 """
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 import requests
-
 from odoo import _
 from odoo.exceptions import UserError
 
@@ -42,8 +42,7 @@ class ApisNetClient:
     def __init__(self, token: str, *, base_url: str = API_BASE_URL, timeout: int = DEFAULT_TIMEOUT):
         if not token:
             raise ApisNetError(
-                _("Falta el token de apis.net.pe. "
-                  "Configúralo en Ajustes → Empresas → tu empresa.")
+                _("Falta el token de apis.net.pe. Configúralo en Ajustes → Empresas → tu empresa.")
             )
         self.token = token
         self.base_url = base_url.rstrip("/")
@@ -59,7 +58,9 @@ class ApisNetClient:
         try:
             resp = requests.get(url, params=params, headers=headers, timeout=self.timeout)
         except requests.exceptions.Timeout as exc:
-            raise ApisNetError(_("Timeout consultando apis.net.pe (>%d s).") % self.timeout) from exc
+            raise ApisNetError(
+                _("Timeout consultando apis.net.pe (>%d s).") % self.timeout
+            ) from exc
         except requests.exceptions.RequestException as exc:
             _logger.exception("apis.net.pe request failed")
             raise ApisNetError(_("Error de conexión con apis.net.pe: %s") % exc) from exc

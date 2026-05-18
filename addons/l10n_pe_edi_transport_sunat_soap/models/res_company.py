@@ -25,11 +25,15 @@ class ResCompany(models.Model):
         if not self.vat:
             raise UserError(_("La empresa %s no tiene RUC configurado.") % self.name)
         if not self.l10n_pe_edi_sol_user or not self.l10n_pe_edi_sol_password:
-            raise UserError(_(
-                "Faltan credenciales SOL para SUNAT en la empresa %s. "
-                "Configúralas en Ajustes → Empresa → Usuario/Password SOL."
-            ) % self.name)
+            raise UserError(
+                _(
+                    "Faltan credenciales SOL para SUNAT en la empresa %s. "
+                    "Configúralas en Ajustes → Empresa → Usuario/Password SOL."
+                )
+                % self.name
+            )
         from ..services.sunat_soap import SunatBillService
+
         return SunatBillService(
             ruc=self.vat.strip(),
             sol_user=self.l10n_pe_edi_sol_user.strip(),

@@ -3,7 +3,6 @@
 
 from odoo import fields, models
 
-
 L10N_PE_TAX_KIND_SELECTION = [
     ("retencion_igv", "Retención IGV"),
     ("percepcion_igv", "Percepción IGV"),
@@ -22,6 +21,6 @@ class AccountTax(models.Model):
         selection=L10N_PE_TAX_KIND_SELECTION,
         string="Tipo de impuesto PE",
         help="Clasificación interna del impuesto peruano para reportes, "
-             "EDI y filtrado en vistas. Vacío = impuesto estándar IGV/ISC "
-             "no clasificado (caso default).",
+        "EDI y filtrado en vistas. Vacío = impuesto estándar IGV/ISC "
+        "no clasificado (caso default).",
     )

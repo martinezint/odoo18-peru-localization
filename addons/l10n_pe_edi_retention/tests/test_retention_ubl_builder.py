@@ -5,7 +5,6 @@ from datetime import date
 from decimal import Decimal
 
 from lxml import etree
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.retention_ubl_builder import (
@@ -61,7 +60,6 @@ def _make_minimal_retention():
 
 @tagged("post_install", "-at_install", "l10n_pe_edi_retention")
 class TestRetentionUblBuilder(TransactionCase):
-
     def setUp(self):
         super().setUp()
         self.builder = RetentionUblBuilder()
@@ -83,8 +81,7 @@ class TestRetentionUblBuilder(TransactionCase):
         self.assertEqual(nsmap.get("sac"), NS_SAC)
 
     def test_extension_placeholder_present(self):
-        path = (f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension"
-                f"/{{{NS_EXT}}}ExtensionContent")
+        path = f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension/{{{NS_EXT}}}ExtensionContent"
         ext = self.root.find(path)
         self.assertIsNotNone(ext)
         self.assertEqual(len(list(ext)), 0)
@@ -119,12 +116,8 @@ class TestRetentionUblBuilder(TransactionCase):
     # ─── SUNAT regime ─────────────────────────────────────────────
 
     def test_sunat_retention_system_and_percent(self):
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_SAC}}}SUNATRetentionSystemCode"), "01"
-        )
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_SAC}}}SUNATRetentionPercent"), "3"
-        )
+        self.assertEqual(self.root.findtext(f"{{{NS_SAC}}}SUNATRetentionSystemCode"), "01")
+        self.assertEqual(self.root.findtext(f"{{{NS_SAC}}}SUNATRetentionPercent"), "3")
 
     def test_total_invoice_amount_is_total_retention(self):
         amt = self.root.find(f"{{{NS_CBC}}}TotalInvoiceAmount")
@@ -147,36 +140,28 @@ class TestRetentionUblBuilder(TransactionCase):
         self.assertEqual(len(docs), 1)
 
     def test_document_serie_number_with_scheme_id(self):
-        doc_id = self.root.find(
-            f"{{{NS_SAC}}}SUNATRetentionDocument/{{{NS_CBC}}}ID"
-        )
+        doc_id = self.root.find(f"{{{NS_SAC}}}SUNATRetentionDocument/{{{NS_CBC}}}ID")
         self.assertEqual(doc_id.text, "F001-123")
         self.assertEqual(doc_id.get("schemeID"), "01")  # Factura
 
     def test_document_total_invoice_amount(self):
         amt = self.root.findtext(
-            f"{{{NS_SAC}}}SUNATRetentionDocument"
-            f"/{{{NS_CBC}}}TotalInvoiceAmount"
+            f"{{{NS_SAC}}}SUNATRetentionDocument/{{{NS_CBC}}}TotalInvoiceAmount"
         )
         self.assertEqual(amt, "1180.00")
 
     def test_document_payment(self):
         paid = self.root.findtext(
-            f"{{{NS_SAC}}}SUNATRetentionDocument"
-            f"/{{{NS_CAC}}}Payment/{{{NS_CBC}}}PaidAmount"
+            f"{{{NS_SAC}}}SUNATRetentionDocument/{{{NS_CAC}}}Payment/{{{NS_CBC}}}PaidAmount"
         )
         paid_date = self.root.findtext(
-            f"{{{NS_SAC}}}SUNATRetentionDocument"
-            f"/{{{NS_CAC}}}Payment/{{{NS_CBC}}}PaidDate"
+            f"{{{NS_SAC}}}SUNATRetentionDocument/{{{NS_CAC}}}Payment/{{{NS_CBC}}}PaidDate"
         )
         self.assertEqual(paid, "1180.00")
         self.assertEqual(paid_date, "2026-05-18")
 
     def test_document_retention_info(self):
-        info_path = (
-            f"{{{NS_SAC}}}SUNATRetentionDocument"
-            f"/{{{NS_SAC}}}SUNATRetentionInformation"
-        )
+        info_path = f"{{{NS_SAC}}}SUNATRetentionDocument/{{{NS_SAC}}}SUNATRetentionInformation"
         ret_amt = self.root.findtext(f"{info_path}/{{{NS_SAC}}}SUNATRetentionAmount")
         ret_date = self.root.findtext(f"{info_path}/{{{NS_SAC}}}SUNATRetentionDate")
         net = self.root.findtext(f"{info_path}/{{{NS_SAC}}}SUNATNetTotalCashed")

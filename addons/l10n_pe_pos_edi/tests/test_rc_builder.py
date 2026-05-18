@@ -5,7 +5,6 @@ from datetime import date
 from decimal import Decimal
 
 from lxml import etree
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.rc_summary_builder import (
@@ -29,21 +28,22 @@ def _make_minimal_summary(line_count=1):
         supplier=RcSupplier(ruc="20131312955", legal_name="EMISOR DEMO"),
     )
     for i in range(1, line_count + 1):
-        s.lines.append(RcLine(
-            line_id=i,
-            serie="B001",
-            start_number=str(i),
-            end_number=str(i),
-            total_amount=Decimal("118.00"),
-            payable_amount=Decimal("100.00"),
-            tax_amount=Decimal("18.00"),
-        ))
+        s.lines.append(
+            RcLine(
+                line_id=i,
+                serie="B001",
+                start_number=str(i),
+                end_number=str(i),
+                total_amount=Decimal("118.00"),
+                payable_amount=Decimal("100.00"),
+                tax_amount=Decimal("18.00"),
+            )
+        )
     return s
 
 
 @tagged("post_install", "-at_install", "l10n_pe_pos_edi")
 class TestRcSummaryBuilder(TransactionCase):
-
     def setUp(self):
         super().setUp()
         self.builder = RcSummaryBuilder()
@@ -64,8 +64,7 @@ class TestRcSummaryBuilder(TransactionCase):
         self.assertEqual(nsmap.get("sac"), NS_SAC)
 
     def test_extension_placeholder(self):
-        path = (f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension"
-                f"/{{{NS_EXT}}}ExtensionContent")
+        path = f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension/{{{NS_EXT}}}ExtensionContent"
         self.assertIsNotNone(self.root.find(path))
 
     def test_header_versions_and_id(self):
@@ -75,14 +74,10 @@ class TestRcSummaryBuilder(TransactionCase):
 
     def test_reference_date_is_boleta_date(self):
         # ReferenceDate = día de las boletas (no del envío)
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_CBC}}}ReferenceDate"), "2026-05-17"
-        )
+        self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}ReferenceDate"), "2026-05-17")
 
     def test_issue_date_is_summary_date(self):
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_CBC}}}IssueDate"), "2026-05-18"
-        )
+        self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}IssueDate"), "2026-05-18")
 
     # ─── Supplier ────────────────────────────────────────────────
 
@@ -111,15 +106,11 @@ class TestRcSummaryBuilder(TransactionCase):
         self.assertEqual(len(lines), 1)
 
     def test_line_document_type_code_03(self):
-        code = self.root.findtext(
-            f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_CBC}}}DocumentTypeCode"
-        )
+        code = self.root.findtext(f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_CBC}}}DocumentTypeCode")
         self.assertEqual(code, "03")
 
     def test_line_serie_and_range(self):
-        serie = self.root.findtext(
-            f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_SAC}}}DocumentSerialID"
-        )
+        serie = self.root.findtext(f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_SAC}}}DocumentSerialID")
         start = self.root.findtext(
             f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_SAC}}}StartDocumentNumberID"
         )
@@ -131,9 +122,7 @@ class TestRcSummaryBuilder(TransactionCase):
         self.assertEqual(end, "1")
 
     def test_line_total_amount(self):
-        amt = self.root.find(
-            f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_SAC}}}TotalAmount"
-        )
+        amt = self.root.find(f"{{{NS_SAC}}}SummaryDocumentsLine/{{{NS_SAC}}}TotalAmount")
         self.assertEqual(amt.text, "118.00")
         self.assertEqual(amt.get("currencyID"), "PEN")
 

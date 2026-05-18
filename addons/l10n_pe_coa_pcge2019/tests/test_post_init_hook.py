@@ -21,24 +21,25 @@ class TestPostInitHook(TransactionCase):
         cls.us = cls.env.ref("base.us")
 
     def _new_pe_company(self, name):
-        return self.env["res.company"].create({
-            "name": name,
-            "country_id": self.pe.id,
-        })
+        return self.env["res.company"].create(
+            {
+                "name": name,
+                "country_id": self.pe.id,
+            }
+        )
 
     def test_hook_applies_chart_to_fresh_pe_company(self):
         co = self._new_pe_company("PE Fresh Co")
         self.assertFalse(co.chart_template, "Empresa nueva no debe tener chart aún.")
         _l10n_pe_coa_post_init(self.env)
         co.invalidate_recordset()
-        self.assertEqual(co.chart_template, "pe",
-                         "Hook debió aplicar chart 'pe' a la empresa peruana sin chart.")
+        self.assertEqual(
+            co.chart_template, "pe", "Hook debió aplicar chart 'pe' a la empresa peruana sin chart."
+        )
 
     def test_hook_skips_company_with_chart_already(self):
         co = self._new_pe_company("PE Co with chart")
-        self.env["account.chart.template"].try_loading(
-            "pe", company=co, install_demo=False
-        )
+        self.env["account.chart.template"].try_loading("pe", company=co, install_demo=False)
         co.invalidate_recordset()
         self.assertEqual(co.chart_template, "pe")
         # Re-ejecutar no debe romper
@@ -47,10 +48,12 @@ class TestPostInitHook(TransactionCase):
         self.assertEqual(co.chart_template, "pe")
 
     def test_hook_skips_non_pe_company(self):
-        co = self.env["res.company"].create({
-            "name": "US Co",
-            "country_id": self.us.id,
-        })
+        co = self.env["res.company"].create(
+            {
+                "name": "US Co",
+                "country_id": self.us.id,
+            }
+        )
         _l10n_pe_coa_post_init(self.env)
         co.invalidate_recordset()
         # No debe haber aplicado chart 'pe' a una empresa de EEUU

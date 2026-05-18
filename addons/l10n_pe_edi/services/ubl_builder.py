@@ -33,15 +33,14 @@ Estructura mínima de una Factura UBL 2.1 que SUNAT acepta:
       <cac:InvoiceLine>+ ... líneas ... </cac:InvoiceLine>
     </Invoice>
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, time
 from decimal import Decimal
-from typing import Optional
 
 from lxml import etree
-
 
 # ─── Namespaces SUNAT/UBL 2.1 ──────────────────────────────────────────
 NS_INVOICE = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -63,43 +62,46 @@ NSMAP = {
 
 # ─── Data classes (input al builder) ───────────────────────────────────
 
+
 @dataclass
 class Party:
     """Emisor o cliente. Cumple con cac:AccountingSupplierParty / CustomerParty."""
-    ruc: str                       # RUC o DNI
-    doc_type_code: str             # SUNAT catálogo 06: '6' RUC, '1' DNI, '4' CE
-    legal_name: str                # Razón social
+
+    ruc: str  # RUC o DNI
+    doc_type_code: str  # SUNAT catálogo 06: '6' RUC, '1' DNI, '4' CE
+    legal_name: str  # Razón social
     commercial_name: str = ""
     address_street: str = ""
-    address_district: str = ""     # Ej. "MIRAFLORES"
-    address_city: str = ""         # Ej. "LIMA"
+    address_district: str = ""  # Ej. "MIRAFLORES"
+    address_city: str = ""  # Ej. "LIMA"
     address_country: str = "PE"
-    ubigeo: str = ""               # Ej. "150122" (Miraflores)
+    ubigeo: str = ""  # Ej. "150122" (Miraflores)
 
 
 @dataclass
 class InvoiceLine:
-    line_id: int                   # Secuencial 1, 2, 3...
+    line_id: int  # Secuencial 1, 2, 3...
     description: str
     quantity: Decimal
-    unit_code: str = "NIU"         # Unidad SUNAT
+    unit_code: str = "NIU"  # Unidad SUNAT
     unit_price: Decimal = Decimal("0")
     line_extension_amount: Decimal = Decimal("0")  # cantidad × precio sin IGV
-    igv_amount: Decimal = Decimal("0")             # IGV de la línea
-    igv_affectation_code: str = "10"               # Cat 07: 10=Gravado, 20=Exo, 30=Inafecto
-    igv_percentage: Decimal = Decimal("18")        # Tasa IGV aplicada (18% típico)
+    igv_amount: Decimal = Decimal("0")  # IGV de la línea
+    igv_affectation_code: str = "10"  # Cat 07: 10=Gravado, 20=Exo, 30=Inafecto
+    igv_percentage: Decimal = Decimal("18")  # Tasa IGV aplicada (18% típico)
 
 
 @dataclass
 class Invoice:
     """Factura SUNAT 01 — versión mínima para v1."""
-    serie_number: str              # "F001-1"
+
+    serie_number: str  # "F001-1"
     issue_date: date
     issue_time: time
-    due_date: Optional[date] = None
+    due_date: date | None = None
     operation_type_code: str = "0101"  # Cat 51: 0101 Venta interna
     currency_code: str = "PEN"
-    note_amount_in_words: str = ""     # "SON CIEN CON 00/100 SOLES"
+    note_amount_in_words: str = ""  # "SON CIEN CON 00/100 SOLES"
 
     supplier: Party = field(default_factory=lambda: Party("", "6", ""))
     customer: Party = field(default_factory=lambda: Party("", "6", ""))
@@ -108,14 +110,15 @@ class Invoice:
 
     # Totales (deben ser consistentes con líneas — el builder no recalcula)
     total_igv: Decimal = Decimal("0")
-    total_taxed: Decimal = Decimal("0")          # Base imponible operaciones gravadas
+    total_taxed: Decimal = Decimal("0")  # Base imponible operaciones gravadas
     total_line_extension: Decimal = Decimal("0")  # Suma de cbc:LineExtensionAmount
-    total_payable: Decimal = Decimal("0")         # Importe total a pagar
-    total_tax_exclusive: Decimal = Decimal("0")   # Subtotal sin IGV
-    total_tax_inclusive: Decimal = Decimal("0")   # Subtotal con IGV (típicamente == payable)
+    total_payable: Decimal = Decimal("0")  # Importe total a pagar
+    total_tax_exclusive: Decimal = Decimal("0")  # Subtotal sin IGV
+    total_tax_inclusive: Decimal = Decimal("0")  # Subtotal con IGV (típicamente == payable)
 
 
 # ─── Builder ────────────────────────────────────────────────────────────
+
 
 class UblInvoiceBuilder:
     """Construye lxml.etree.Element <Invoice> desde un objeto Invoice.
@@ -141,9 +144,7 @@ class UblInvoiceBuilder:
     def build_xml_bytes(self, invoice: Invoice) -> bytes:
         """Helper: build + serialize a bytes UTF-8 con declaración XML."""
         root = self.build(invoice)
-        return etree.tostring(
-            root, xml_declaration=True, encoding="UTF-8", standalone=False
-        )
+        return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=False)
 
     # ─── Subsecciones ─────────────────────────────────────────────────
 
@@ -190,10 +191,15 @@ class UblInvoiceBuilder:
 
         # PartyIdentification (doc identidad)
         identification = etree.SubElement(party_el, f"{{{NS_CAC}}}PartyIdentification")
-        self._cbc(identification, "ID", party.ruc, schemeID=party.doc_type_code,
-                  schemeName="Documento de Identidad",
-                  schemeAgencyName="PE:SUNAT",
-                  schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+        self._cbc(
+            identification,
+            "ID",
+            party.ruc,
+            schemeID=party.doc_type_code,
+            schemeName="Documento de Identidad",
+            schemeAgencyName="PE:SUNAT",
+            schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06",
+        )
 
         # PartyName (nombre comercial — opcional)
         if party.commercial_name:
@@ -240,9 +246,15 @@ class UblInvoiceBuilder:
 
     def _add_monetary_totals(self, root, inv: Invoice):
         m = etree.SubElement(root, f"{{{NS_CAC}}}LegalMonetaryTotal")
-        self._cbc(m, "LineExtensionAmount", _fmt(inv.total_line_extension), currencyID=inv.currency_code)
-        self._cbc(m, "TaxInclusiveAmount", _fmt(inv.total_tax_inclusive), currencyID=inv.currency_code)
-        self._cbc(m, "TaxExclusiveAmount", _fmt(inv.total_tax_exclusive), currencyID=inv.currency_code)
+        self._cbc(
+            m, "LineExtensionAmount", _fmt(inv.total_line_extension), currencyID=inv.currency_code
+        )
+        self._cbc(
+            m, "TaxInclusiveAmount", _fmt(inv.total_tax_inclusive), currencyID=inv.currency_code
+        )
+        self._cbc(
+            m, "TaxExclusiveAmount", _fmt(inv.total_tax_exclusive), currencyID=inv.currency_code
+        )
         self._cbc(m, "PayableAmount", _fmt(inv.total_payable), currencyID=inv.currency_code)
 
     def _add_lines(self, root, lines: list[InvoiceLine], currency: str):
@@ -250,34 +262,38 @@ class UblInvoiceBuilder:
             self._add_line(root, line, currency)
 
     def _add_line(self, root, line: InvoiceLine, currency: str):
-        l = etree.SubElement(root, f"{{{NS_CAC}}}InvoiceLine")
-        self._cbc(l, "ID", str(line.line_id))
-        self._cbc(l, "InvoicedQuantity", _fmt(line.quantity, 3), unitCode=line.unit_code)
-        self._cbc(l, "LineExtensionAmount", _fmt(line.line_extension_amount), currencyID=currency)
+        ln = etree.SubElement(root, f"{{{NS_CAC}}}InvoiceLine")
+        self._cbc(ln, "ID", str(line.line_id))
+        self._cbc(ln, "InvoicedQuantity", _fmt(line.quantity, 3), unitCode=line.unit_code)
+        self._cbc(ln, "LineExtensionAmount", _fmt(line.line_extension_amount), currencyID=currency)
 
         # Tax info por línea
-        tax_total = etree.SubElement(l, f"{{{NS_CAC}}}TaxTotal")
+        tax_total = etree.SubElement(ln, f"{{{NS_CAC}}}TaxTotal")
         self._cbc(tax_total, "TaxAmount", _fmt(line.igv_amount), currencyID=currency)
         subtotal = etree.SubElement(tax_total, f"{{{NS_CAC}}}TaxSubtotal")
         self._cbc(subtotal, "TaxableAmount", _fmt(line.line_extension_amount), currencyID=currency)
         self._cbc(subtotal, "TaxAmount", _fmt(line.igv_amount), currencyID=currency)
         category = etree.SubElement(subtotal, f"{{{NS_CAC}}}TaxCategory")
         self._cbc(category, "Percent", _fmt(line.igv_percentage, 2))
-        self._cbc(category, "TaxExemptionReasonCode", line.igv_affectation_code,
-                  listAgencyName="PE:SUNAT",
-                  listName="SUNAT:Codigo de Tipo de Afectacion del IGV",
-                  listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo07")
+        self._cbc(
+            category,
+            "TaxExemptionReasonCode",
+            line.igv_affectation_code,
+            listAgencyName="PE:SUNAT",
+            listName="SUNAT:Codigo de Tipo de Afectacion del IGV",
+            listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo07",
+        )
         scheme = etree.SubElement(category, f"{{{NS_CAC}}}TaxScheme")
         self._cbc(scheme, "ID", "1000")
         self._cbc(scheme, "Name", "IGV")
         self._cbc(scheme, "TaxTypeCode", "VAT")
 
         # Item
-        item = etree.SubElement(l, f"{{{NS_CAC}}}Item")
+        item = etree.SubElement(ln, f"{{{NS_CAC}}}Item")
         self._cbc(item, "Description", line.description)
 
         # Price
-        price = etree.SubElement(l, f"{{{NS_CAC}}}Price")
+        price = etree.SubElement(ln, f"{{{NS_CAC}}}Price")
         self._cbc(price, "PriceAmount", _fmt(line.unit_price), currencyID=currency)
 
     # ─── Helper ─────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ Genera un certificado self-signed en memoria para cada test (no toca el cert
 de la empresa). Verifica que firma y luego verifica correctamente.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from odoo.tests.common import TransactionCase, tagged
 
@@ -22,20 +22,20 @@ def _make_self_signed_pem():
     from cryptography.hazmat.primitives.asymmetric import rsa
     from cryptography.x509.oid import NameOID
 
-    key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend()
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "Test PE EDI"),
+        ]
     )
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, "Test PE EDI"),
-    ])
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.now(timezone.utc) - timedelta(days=1))
-        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=30))
+        .not_valid_before(datetime.now(UTC) - timedelta(days=1))
+        .not_valid_after(datetime.now(UTC) + timedelta(days=30))
         .sign(key, hashes.SHA256(), default_backend())
     )
     cert_pem = cert.public_bytes(serialization.Encoding.PEM)
@@ -56,20 +56,20 @@ def _make_self_signed_pfx(password: bytes = b"123456") -> bytes:
     from cryptography.hazmat.primitives.serialization import pkcs12
     from cryptography.x509.oid import NameOID
 
-    key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend()
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    subject = issuer = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "Test PFX"),
+        ]
     )
-    subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, "Test PFX"),
-    ])
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.now(timezone.utc) - timedelta(days=1))
-        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=30))
+        .not_valid_before(datetime.now(UTC) - timedelta(days=1))
+        .not_valid_after(datetime.now(UTC) + timedelta(days=30))
         .sign(key, hashes.SHA256(), default_backend())
     )
     return pkcs12.serialize_key_and_certificates(
@@ -87,8 +87,12 @@ def _make_test_root_with_placeholder():
     from decimal import Decimal
 
     from ..services.ubl_builder import (
-        Invoice, InvoiceLine, Party, UblInvoiceBuilder,
+        Invoice,
+        InvoiceLine,
+        Party,
+        UblInvoiceBuilder,
     )
+
     inv = Invoice(
         serie_number="F001-1",
         issue_date=date(2026, 5, 15),
@@ -97,11 +101,16 @@ def _make_test_root_with_placeholder():
         supplier=Party(ruc="20131312955", doc_type_code="6", legal_name="SUNAT"),
         customer=Party(ruc="20100047218", doc_type_code="6", legal_name="BCP"),
     )
-    inv.lines.append(InvoiceLine(
-        line_id=1, description="Test", quantity=Decimal("1"),
-        unit_price=Decimal("100"), line_extension_amount=Decimal("100"),
-        igv_amount=Decimal("18"),
-    ))
+    inv.lines.append(
+        InvoiceLine(
+            line_id=1,
+            description="Test",
+            quantity=Decimal("1"),
+            unit_price=Decimal("100"),
+            line_extension_amount=Decimal("100"),
+            igv_amount=Decimal("18"),
+        )
+    )
     inv.total_payable = Decimal("118")
     inv.total_tax_inclusive = Decimal("118")
     inv.total_tax_exclusive = Decimal("100")
@@ -113,7 +122,6 @@ def _make_test_root_with_placeholder():
 
 @tagged("post_install", "-at_install", "l10n_pe_edi")
 class TestXadesSigner(TransactionCase):
-
     def setUp(self):
         super().setUp()
         self.cert_pem, self.key_pem = _make_self_signed_pem()
@@ -134,7 +142,8 @@ class TestXadesSigner(TransactionCase):
 
     def test_from_pfx_wrong_password_raises(self):
         pfx = _make_self_signed_pfx(password=b"123456")
-        with self.assertRaises(Exception):
+        # cryptography lanza ValueError o subclase para mac-verify-failed
+        with self.assertRaises(ValueError):
             XadesBesSigner.from_pfx_bytes(pfx, b"wrong-password")
 
     # ─── Sign ─────────────────────────────────────────────────────
@@ -143,9 +152,7 @@ class TestXadesSigner(TransactionCase):
         root = _make_test_root_with_placeholder()
         signed = self.signer.sign(root, signature_id="SignatureSP")
 
-        sig_el = signed.find(
-            f".//{{{NS_DS}}}Signature"
-        )
+        sig_el = signed.find(f".//{{{NS_DS}}}Signature")
         self.assertIsNotNone(sig_el, "Falta nodo ds:Signature tras firmar")
         self.assertEqual(sig_el.get("Id"), "SignatureSP")
 
@@ -182,6 +189,7 @@ class TestXadesSigner(TransactionCase):
         """Si el árbol no tiene ext:UBLExtensions/UBLExtension/ExtensionContent,
         debemos fallar limpio."""
         from lxml import etree
+
         bare = etree.fromstring(b'<root xmlns="urn:test"/>')
         with self.assertRaises(XadesSigningError):
             self.signer.sign(bare)

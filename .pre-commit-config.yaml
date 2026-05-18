@@ -2,12 +2,15 @@
 # Instalar con: pre-commit install
 # Ejecutar manual: pre-commit run --all-files
 ---
-default_language_version:
-  python: python3.12
+# default_language_version comentado: deja que pre-commit use el python
+# disponible en el host. El target del proyecto (3.12) se valida en CI vía
+# la imagen Docker; el host puede tener 3.11 o 3.13.
+# default_language_version:
+#   python: python3
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -20,22 +23,25 @@ repos:
         args: ['--fix=lf']
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.4
+    rev: v0.15.13
     hooks:
       - id: ruff
         args: ['--fix']
       - id: ruff-format
 
-  - repo: https://github.com/OCA/pylint-odoo
-    rev: v9.4.0
-    hooks:
-      - id: pylint_odoo
-        args:
-          - --rcfile=.pylintrc-odoo
-          - --valid-odoo-versions=18.0
+  # pylint-odoo: deshabilitado por ahora. Para reactivar:
+  # 1. Generar config: pylint --generate-rcfile > .pylintrc-odoo
+  # 2. Ajustar a Odoo 18 + nuestras convenciones
+  # 3. Descomentar este bloque
+  # - repo: https://github.com/OCA/pylint-odoo
+  #   rev: v10.0.2
+  #   hooks:
+  #     - id: pylint_odoo
+  #       args:
+  #         - --valid-odoo-versions=18.0
 
   - repo: https://github.com/PyCQA/isort
-    rev: 6.0.1
+    rev: 9.0.0a3
     hooks:
       - id: isort
         args: ['--profile=black']

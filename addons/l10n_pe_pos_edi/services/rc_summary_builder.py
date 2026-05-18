@@ -42,6 +42,7 @@ Estructura: <SummaryDocuments> en el esquema SUNAT SummaryDocuments-1.
 v1: una <SummaryDocumentsLine> por cada boleta individual (start=end=número).
 v2 podría colapsar rangos consecutivos para reducir tamaño del XML.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -49,7 +50,6 @@ from datetime import date
 from decimal import Decimal
 
 from lxml import etree
-
 
 NS_SUMMARY = "urn:sunat:names:specification:ubl:peru:schema:xsd:SummaryDocuments-1"
 NS_CBC = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
@@ -77,22 +77,25 @@ class RcSupplier:
 @dataclass
 class RcLine:
     """Una boleta dentro del resumen."""
-    line_id: int                       # 1, 2, 3...
-    document_type_code: str = "03"     # cat 1: 03 Boleta, 07 NC sobre boleta
-    serie: str = ""                    # ej. 'B001'
-    start_number: str = "0"            # número desde (string para preservar leading zeros)
-    end_number: str = "0"              # número hasta
+
+    line_id: int  # 1, 2, 3...
+    document_type_code: str = "03"  # cat 1: 03 Boleta, 07 NC sobre boleta
+    serie: str = ""  # ej. 'B001'
+    start_number: str = "0"  # número desde (string para preservar leading zeros)
+    end_number: str = "0"  # número hasta
     total_amount: Decimal = Decimal("0.00")
-    payable_amount: Decimal = Decimal("0.00")  # base imponible operación gravada (cbc:PaidAmount con InstructionID=01)
-    tax_amount: Decimal = Decimal("0.00")       # IGV total de la(s) boleta(s) en el rango
+    payable_amount: Decimal = Decimal(
+        "0.00"
+    )  # base imponible operación gravada (cbc:PaidAmount con InstructionID=01)
+    tax_amount: Decimal = Decimal("0.00")  # IGV total de la(s) boleta(s) en el rango
     currency: str = "PEN"
 
 
 @dataclass
 class RcSummary:
-    serie_number: str                  # 'RC-20260518-001'
-    reference_date: date               # fecha de las boletas (día anterior típico)
-    issue_date: date                   # fecha de emisión del resumen
+    serie_number: str  # 'RC-20260518-001'
+    reference_date: date  # fecha de las boletas (día anterior típico)
+    issue_date: date  # fecha de emisión del resumen
     supplier: RcSupplier = field(default_factory=lambda: RcSupplier("", ""))
     lines: list[RcLine] = field(default_factory=list)
 
@@ -158,8 +161,9 @@ class RcSummaryBuilder:
         etree.SubElement(ln, f"{{{NS_SAC}}}DocumentSerialID").text = line.serie
         etree.SubElement(ln, f"{{{NS_SAC}}}StartDocumentNumberID").text = line.start_number
         etree.SubElement(ln, f"{{{NS_SAC}}}EndDocumentNumberID").text = line.end_number
-        etree.SubElement(ln, f"{{{NS_SAC}}}TotalAmount",
-                         currencyID=line.currency).text = _fmt(line.total_amount)
+        etree.SubElement(ln, f"{{{NS_SAC}}}TotalAmount", currencyID=line.currency).text = _fmt(
+            line.total_amount
+        )
         # BillingPayments: operación gravada (01)
         bp = etree.SubElement(ln, f"{{{NS_SAC}}}BillingPayments")
         self._cbc(bp, "PaidAmount", _fmt(line.payable_amount), currencyID=line.currency)

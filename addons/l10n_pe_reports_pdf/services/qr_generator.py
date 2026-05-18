@@ -23,12 +23,12 @@ Donde:
 El QR se imprime en la representación impresa para que SUNAT/cliente puedan
 verificar autenticidad escaneándolo.
 """
+
 from __future__ import annotations
 
 import io
 from datetime import date
 from decimal import Decimal
-from typing import Optional
 
 import qrcode
 

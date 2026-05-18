@@ -1,8 +1,7 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from odoo import _, fields, models
-
+from odoo import fields, models
 
 STATE_SELECTION = [
     ("draft", "Borrador"),
@@ -21,6 +20,7 @@ class L10nPeEdiDocument(models.Model):
     independiente del transport (SOAP, REST GRE, OSE) — cada transport
     extiende este modelo para añadir su propia info de envío y respuesta.
     """
+
     _name = "l10n.pe.edi.document"
     _description = "Documento EDI SUNAT (Perú)"
     _order = "create_date desc"
@@ -30,8 +30,7 @@ class L10nPeEdiDocument(models.Model):
         string="Nombre archivo SUNAT",
         readonly=True,
         copy=False,
-        help="Nombre estándar SUNAT: RUC-TIPO-SERIE-NUMERO.xml "
-             "(ej. 20131312955-01-F001-1.xml).",
+        help="Nombre estándar SUNAT: RUC-TIPO-SERIE-NUMERO.xml (ej. 20131312955-01-F001-1.xml).",
     )
     move_id = fields.Many2one(
         comodel_name="account.move",
@@ -73,8 +72,7 @@ class L10nPeEdiDocument(models.Model):
     last_action_at = fields.Datetime(string="Último cambio", readonly=True)
 
     _sql_constraints = [
-        ("move_unique", "UNIQUE(move_id)",
-         "Solo un documento EDI por comprobante."),
+        ("move_unique", "UNIQUE(move_id)", "Solo un documento EDI por comprobante."),
     ]
 
     def _build_sunat_filename(self, move):

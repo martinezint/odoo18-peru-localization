@@ -6,6 +6,7 @@ Cuando dos módulos contribuyen al mismo template, Odoo 18 los mergea. Este
 módulo añade cuentas faltantes (elemento 9 mayormente) y nuevas posiciones
 fiscales por régimen tributario, sin tocar las 1229 cuentas existentes.
 """
+
 from odoo import models
 from odoo.addons.account.models.chart_template import template
 

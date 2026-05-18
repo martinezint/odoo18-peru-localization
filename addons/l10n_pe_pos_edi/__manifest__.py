@@ -3,10 +3,10 @@
 {
     "name": "Peru - POS: Resumen Diario de Boletas (RC)",
     "summary": "Generador de Resumen Diario de Boletas (SUNAT SummaryDocuments) "
-               "desde boletas posteadas en account.move. Wizard de generación "
-               "+ extensión pos.session con botón 'Generar RC del cierre'. "
-               "Reusa firma XAdES de l10n_pe_edi. v1: builder + wizard. "
-               "Envío async vía sendSummary SOAP queda para v2.",
+    "desde boletas posteadas en account.move. Wizard de generación "
+    "+ extensión pos.session con botón 'Generar RC del cierre'. "
+    "Reusa firma XAdES de l10n_pe_edi. v1: builder + wizard. "
+    "Envío async vía sendSummary SOAP queda para v2.",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

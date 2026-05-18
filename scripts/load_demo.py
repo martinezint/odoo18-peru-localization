@@ -10,6 +10,7 @@ Uso (dentro del container o con env apuntando a Odoo):
 
 TODO: implementar tras Fase 2 (necesita l10n_pe_edi listo).
 """
+
 from __future__ import annotations
 
 import argparse

@@ -33,10 +33,12 @@ class TestTaxesLoaded(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.test_company = cls.env["res.company"].create({
-            "name": "Test PE Co (taxes extras)",
-            "country_id": cls.pe.id,
-        })
+        cls.test_company = cls.env["res.company"].create(
+            {
+                "name": "Test PE Co (taxes extras)",
+                "country_id": cls.pe.id,
+            }
+        )
         cls.env["account.chart.template"].try_loading(
             "pe", company=cls.test_company, install_demo=False
         )
@@ -95,20 +97,29 @@ class TestTaxesLoaded(TransactionCase):
 
         Usa active_test=False porque la retención del 6% se carga inactiva.
         """
-        retenciones = self.env["account.tax"].with_context(active_test=False).search([
-            ("l10n_pe_tax_kind", "=", "retencion_igv"),
-            ("company_id", "=", self.test_company.id),
-        ])
+        retenciones = (
+            self.env["account.tax"]
+            .with_context(active_test=False)
+            .search(
+                [
+                    ("l10n_pe_tax_kind", "=", "retencion_igv"),
+                    ("company_id", "=", self.test_company.id),
+                ]
+            )
+        )
         self.assertEqual(
-            len(retenciones), 3,
+            len(retenciones),
+            3,
             "Deberían existir 3 retenciones (1.5/3/6%) en la empresa, "
             f"se encontraron {len(retenciones)}",
         )
 
     def test_active_retencion_count(self):
         """Solo 2 retenciones activas por defecto (1.5 y 3%); la del 6% es histórica."""
-        active_ret = self.env["account.tax"].search([
-            ("l10n_pe_tax_kind", "=", "retencion_igv"),
-            ("company_id", "=", self.test_company.id),
-        ])
+        active_ret = self.env["account.tax"].search(
+            [
+                ("l10n_pe_tax_kind", "=", "retencion_igv"),
+                ("company_id", "=", self.test_company.id),
+            ]
+        )
         self.assertEqual(len(active_ret), 2)

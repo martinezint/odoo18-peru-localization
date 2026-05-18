@@ -4,21 +4,20 @@
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase, tagged
 
-
 # RUCs reales conocidos (públicos, fácilmente verificables):
-RUC_VALID_SUNAT = "20131312955"       # SUNAT
-RUC_VALID_BCP = "20100047218"         # Banco de Crédito del Perú
+RUC_VALID_SUNAT = "20131312955"  # SUNAT
+RUC_VALID_BCP = "20100047218"  # Banco de Crédito del Perú
 RUC_INVALID_CHECKSUM = "20131312954"  # Último dígito mal
-RUC_SHORT = "201313129"               # 9 dígitos
-RUC_NON_NUMERIC = "2013131295A"       # Letra al final
+RUC_SHORT = "201313129"  # 9 dígitos
+RUC_NON_NUMERIC = "2013131295A"  # Letra al final
 
 DNI_VALID = "12345678"
 DNI_SHORT = "1234567"
 DNI_LETTERS = "1234567A"
 
-CE_VALID = "001234567"          # 9 chars alfanuméricos
-CE_TOO_SHORT = "12345"          # 5 chars
-CE_TOO_LONG = "1234567890123"   # 13 chars
+CE_VALID = "001234567"  # 9 chars alfanuméricos
+CE_TOO_SHORT = "12345"  # 5 chars
+CE_TOO_LONG = "1234567890123"  # 13 chars
 
 
 @tagged("post_install", "-at_install", "l10n_pe_base_extras")
@@ -36,12 +35,14 @@ class TestRucValidation(TransactionCase):
         cls.pe = cls.env.ref("base.pe")
 
     def _make(self, name, vat, id_type):
-        return self.env["res.partner"].create({
-            "name": name,
-            "vat": vat,
-            "country_id": self.pe.id,
-            "l10n_latam_identification_type_id": id_type.id,
-        })
+        return self.env["res.partner"].create(
+            {
+                "name": name,
+                "vat": vat,
+                "country_id": self.pe.id,
+                "l10n_latam_identification_type_id": id_type.id,
+            }
+        )
 
     # ─── RUC ─────────────────────────────────────────────────────────
 
@@ -101,18 +102,22 @@ class TestRucValidation(TransactionCase):
 
     def test_no_vat_no_validation(self):
         """Partner sin VAT no debe disparar el constraint."""
-        partner = self.env["res.partner"].create({
-            "name": "Sin RUC",
-            "l10n_latam_identification_type_id": self.it_ruc.id,
-        })
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Sin RUC",
+                "l10n_latam_identification_type_id": self.it_ruc.id,
+            }
+        )
         self.assertTrue(partner.id)
 
     def test_no_id_type_no_validation(self):
         """Sin tipo de identificación, no validamos formato."""
-        partner = self.env["res.partner"].create({
-            "name": "Sin tipo",
-            "vat": "anything",
-        })
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Sin tipo",
+                "vat": "anything",
+            }
+        )
         self.assertTrue(partner.id)
 
     def test_update_invalid_ruc_raises(self):

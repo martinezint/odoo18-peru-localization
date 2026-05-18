@@ -79,10 +79,13 @@ class L10nPeEdiDocument(models.Model):
         if not self.xml_signed:
             raise UserError(_("No hay XML firmado en %s") % self.name)
         if self.sunat_summary_ticket:
-            raise UserError(_(
-                "Este documento ya tiene un ticket (%s). Usa 'Consultar estado' "
-                "para chequear el resultado."
-            ) % self.sunat_summary_ticket)
+            raise UserError(
+                _(
+                    "Este documento ya tiene un ticket (%s). Usa 'Consultar estado' "
+                    "para chequear el resultado."
+                )
+                % self.sunat_summary_ticket
+            )
 
         client = self.company_id._get_l10n_pe_sunat_soap_client()
         xml_filename = self.name
@@ -91,23 +94,28 @@ class L10nPeEdiDocument(models.Model):
         zip_bytes = client.zip_xml(xml_filename, xml_bytes)
 
         from ..services.sunat_soap import SunatSoapError
+
         try:
             ticket = client.send_summary(zip_filename, zip_bytes)
         except SunatSoapError as exc:
-            self.write({
-                "state": "error",
-                "error_message": str(exc),
-                "sunat_sent_at": fields.Datetime.now(),
-            })
+            self.write(
+                {
+                    "state": "error",
+                    "error_message": str(exc),
+                    "sunat_sent_at": fields.Datetime.now(),
+                }
+            )
             raise UserError(_("SUNAT rechazó el envío: %s") % exc) from exc
 
-        self.write({
-            "sunat_summary_ticket": ticket,
-            "sunat_summary_status_code": "98",  # en proceso
-            "sunat_sent_at": fields.Datetime.now(),
-            "state": "sent",
-            "error_message": False,
-        })
+        self.write(
+            {
+                "sunat_summary_ticket": ticket,
+                "sunat_summary_status_code": "98",  # en proceso
+                "sunat_sent_at": fields.Datetime.now(),
+                "state": "sent",
+                "error_message": False,
+            }
+        )
         _logger.info("sendSummary OK para %s → ticket %s", self.name, ticket)
 
     def action_l10n_pe_check_summary_status(self):
@@ -123,10 +131,12 @@ class L10nPeEdiDocument(models.Model):
 
         Llamado por ir.cron 'Peru SUNAT: poll tickets RC async' (data file).
         """
-        pending = self.search([
-            ("sunat_summary_ticket", "!=", False),
-            ("sunat_summary_status_code", "=", "98"),
-        ])
+        pending = self.search(
+            [
+                ("sunat_summary_ticket", "!=", False),
+                ("sunat_summary_status_code", "=", "98"),
+            ]
+        )
         if not pending:
             _logger.debug("cron_poll_summary_tickets: nada pendiente.")
             return
@@ -140,7 +150,8 @@ class L10nPeEdiDocument(models.Model):
             except Exception:
                 _logger.exception(
                     "Fallo polling ticket %s (doc %s)",
-                    doc.sunat_summary_ticket, doc.name,
+                    doc.sunat_summary_ticket,
+                    doc.name,
                 )
 
     def _check_summary_status_one(self):
@@ -150,6 +161,7 @@ class L10nPeEdiDocument(models.Model):
 
         client = self.company_id._get_l10n_pe_sunat_soap_client()
         from ..services.cdr_parser import parse_cdr
+
         result = client.get_status_async(self.sunat_summary_ticket)
         status_code = result["status_code"]
         cdr_bytes = result["cdr_bytes"]
@@ -160,17 +172,21 @@ class L10nPeEdiDocument(models.Model):
         }
         if status_code == "0" and cdr_bytes:
             cdr = parse_cdr(cdr_bytes)
-            vals.update({
-                "sunat_cdr": base64.b64encode(cdr_bytes),
-                "sunat_cdr_filename": f"R-{self.name}",
-                "sunat_response_code": cdr.response_code,
-                "sunat_response_description": cdr.description,
-                "state": "accepted" if cdr.is_accepted or cdr.is_observed else "rejected",
-            })
+            vals.update(
+                {
+                    "sunat_cdr": base64.b64encode(cdr_bytes),
+                    "sunat_cdr_filename": f"R-{self.name}",
+                    "sunat_response_code": cdr.response_code,
+                    "sunat_response_description": cdr.description,
+                    "state": "accepted" if cdr.is_accepted or cdr.is_observed else "rejected",
+                }
+            )
         elif status_code in ("99", "90"):
-            vals.update({
-                "state": "error",
-                "error_message": _("Error async SUNAT código %s") % status_code,
-            })
+            vals.update(
+                {
+                    "state": "error",
+                    "error_message": _("Error async SUNAT código %s") % status_code,
+                }
+            )
         # status_code='98' → seguimos esperando, no cambia state
         self.write(vals)

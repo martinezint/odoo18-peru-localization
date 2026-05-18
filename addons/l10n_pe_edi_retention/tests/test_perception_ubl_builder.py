@@ -5,11 +5,9 @@ from datetime import date
 from decimal import Decimal
 
 from lxml import etree
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.perception_ubl_builder import (
-    NS_CAC,
     NS_CBC,
     NS_PERCEPTION,
     NS_SAC,
@@ -58,7 +56,6 @@ def _make_minimal_perception():
 
 @tagged("post_install", "-at_install", "l10n_pe_edi_retention")
 class TestPerceptionUblBuilder(TransactionCase):
-
     def setUp(self):
         super().setUp()
         self.builder = PerceptionUblBuilder()
@@ -75,12 +72,8 @@ class TestPerceptionUblBuilder(TransactionCase):
         self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}ID"), "P001-1")
 
     def test_sunat_perception_system_and_percent(self):
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_SAC}}}SUNATPerceptionSystemCode"), "01"
-        )
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_SAC}}}SUNATPerceptionPercent"), "2"
-        )
+        self.assertEqual(self.root.findtext(f"{{{NS_SAC}}}SUNATPerceptionSystemCode"), "01")
+        self.assertEqual(self.root.findtext(f"{{{NS_SAC}}}SUNATPerceptionPercent"), "2")
 
     def test_total_invoice_amount(self):
         amt = self.root.find(f"{{{NS_CBC}}}TotalInvoiceAmount")
@@ -96,8 +89,7 @@ class TestPerceptionUblBuilder(TransactionCase):
 
     def test_document_perception_info(self):
         info = (
-            f"{{{NS_SAC}}}SUNATPerceptionDocumentReference"
-            f"/{{{NS_SAC}}}SUNATPerceptionInformation"
+            f"{{{NS_SAC}}}SUNATPerceptionDocumentReference/{{{NS_SAC}}}SUNATPerceptionInformation"
         )
         amt = self.root.findtext(f"{info}/{{{NS_SAC}}}SUNATPerceptionAmount")
         date_txt = self.root.findtext(f"{info}/{{{NS_SAC}}}SUNATPerceptionDate")
@@ -110,12 +102,8 @@ class TestPerceptionUblBuilder(TransactionCase):
         self.per.regime_code = "03"
         self.per.regime_percent = Decimal("5")
         root = self.builder.build(self.per)
-        self.assertEqual(
-            root.findtext(f"{{{NS_SAC}}}SUNATPerceptionSystemCode"), "03"
-        )
-        self.assertEqual(
-            root.findtext(f"{{{NS_SAC}}}SUNATPerceptionPercent"), "5"
-        )
+        self.assertEqual(root.findtext(f"{{{NS_SAC}}}SUNATPerceptionSystemCode"), "03")
+        self.assertEqual(root.findtext(f"{{{NS_SAC}}}SUNATPerceptionPercent"), "5")
 
     def test_serialization_is_well_formed(self):
         xml_bytes = self.builder.build_xml_bytes(self.per)

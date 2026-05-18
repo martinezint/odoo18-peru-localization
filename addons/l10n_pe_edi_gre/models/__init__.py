@@ -1,6 +1,4 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from . import res_company
-from . import l10n_pe_edi_document
-from . import stock_picking
+from . import l10n_pe_edi_document, res_company, stock_picking

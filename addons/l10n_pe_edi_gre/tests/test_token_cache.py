@@ -1,15 +1,15 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.sunat_gre_rest import (
     ESTADO_ACEPTADO,
+    ESTADO_ANULADO,
     ESTADO_EN_PROCESO,
     ESTADO_RECHAZADO,
-    ESTADO_ANULADO,
     GreStatus,
     TokenCache,
 )
@@ -26,14 +26,14 @@ class TestTokenCache(TransactionCase):
     def test_expired_cache_not_valid(self):
         cache = TokenCache(
             token="abc",
-            expires_at=datetime.now(timezone.utc) - timedelta(seconds=10),
+            expires_at=datetime.now(UTC) - timedelta(seconds=10),
         )
         self.assertFalse(cache.is_valid())
 
     def test_fresh_token_is_valid(self):
         cache = TokenCache(
             token="abc",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=10),
+            expires_at=datetime.now(UTC) + timedelta(minutes=10),
         )
         self.assertTrue(cache.is_valid())
 
@@ -41,14 +41,14 @@ class TestTokenCache(TransactionCase):
         """Si el token expira en <30s, lo consideramos expirado por seguridad."""
         cache = TokenCache(
             token="abc",
-            expires_at=datetime.now(timezone.utc) + timedelta(seconds=15),
+            expires_at=datetime.now(UTC) + timedelta(seconds=15),
         )
         self.assertFalse(cache.is_valid(safety_window_sec=30))
 
     def test_custom_safety_window(self):
         cache = TokenCache(
             token="abc",
-            expires_at=datetime.now(timezone.utc) + timedelta(seconds=15),
+            expires_at=datetime.now(UTC) + timedelta(seconds=15),
         )
         # Con safety_window de 5s, el token de 15s aún sirve
         self.assertTrue(cache.is_valid(safety_window_sec=5))

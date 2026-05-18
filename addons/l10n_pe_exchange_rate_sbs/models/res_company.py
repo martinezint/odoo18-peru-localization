@@ -25,22 +25,23 @@ class ResCompany(models.Model):
         string="Auto-actualizar T/C desde SBS",
         default=True,
         help="Si está activado, el cron diario actualizará los tipos de cambio "
-             "de las monedas seleccionadas usando la SBS como fuente.",
+        "de las monedas seleccionadas usando la SBS como fuente.",
     )
     l10n_pe_sbs_rate_type = fields.Selection(
         selection=SBS_RATE_TYPE_SELECTION,
         string="Tipo de cambio a usar",
         default="venta",
         help="SBS publica compra y venta diarios. Para contabilidad y SUNAT "
-             "se usa típicamente el tipo VENTA.",
+        "se usa típicamente el tipo VENTA.",
     )
     l10n_pe_sbs_currency_ids = fields.Many2many(
         "res.currency",
         "res_company_l10n_pe_sbs_currency_rel",
-        "company_id", "currency_id",
+        "company_id",
+        "currency_id",
         string="Monedas a actualizar",
         help="Monedas para las que se actualizará el tipo de cambio diariamente. "
-             "Por defecto USD si no se especifica.",
+        "Por defecto USD si no se especifica.",
     )
 
     # ─── Acción manual ─────────────────────────────────────────────────
@@ -50,11 +51,13 @@ class ResCompany(models.Model):
         self.ensure_one()
         updated = self._l10n_pe_update_sbs_rates(when=date.today())
         if not updated:
-            raise UserError(_(
-                "SBS no devolvió tipos de cambio para hoy. Suele significar "
-                "que es fin de semana o feriado, o que SBS aún no ha publicado. "
-                "Intenta de nuevo más tarde."
-            ))
+            raise UserError(
+                _(
+                    "SBS no devolvió tipos de cambio para hoy. Suele significar "
+                    "que es fin de semana o feriado, o que SBS aún no ha publicado. "
+                    "Intenta de nuevo más tarde."
+                )
+            )
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -74,10 +77,12 @@ class ResCompany(models.Model):
 
         Errores en una empresa no detienen el procesamiento de las siguientes.
         """
-        companies = self.search([
-            ("partner_id.country_id.code", "=", "PE"),
-            ("l10n_pe_sbs_auto_update", "=", True),
-        ])
+        companies = self.search(
+            [
+                ("partner_id.country_id.code", "=", "PE"),
+                ("l10n_pe_sbs_auto_update", "=", True),
+            ]
+        )
         if not companies:
             _logger.info("l10n_pe_exchange_rate_sbs: no hay empresas PE con auto-update activo.")
             return
@@ -86,9 +91,7 @@ class ResCompany(models.Model):
             try:
                 company._l10n_pe_update_sbs_rates(when=date.today())
             except Exception:
-                _logger.exception(
-                    "Fallo actualizando T/C desde SBS para empresa %s", company.name
-                )
+                _logger.exception("Fallo actualizando T/C desde SBS para empresa %s", company.name)
 
     def _l10n_pe_update_sbs_rates(self, when: date) -> list[str]:
         """Hace el fetch SBS y escribe las rates. Devuelve lista de ISO actualizadas.
@@ -111,9 +114,9 @@ class ResCompany(models.Model):
         sbs_data = scraper.fetch(when)
         if not sbs_data:
             _logger.info(
-                "SBS no devolvió data para %s (fecha %s). "
-                "Puede ser fin de semana o feriado.",
-                self.name, when,
+                "SBS no devolvió data para %s (fecha %s). Puede ser fin de semana o feriado.",
+                self.name,
+                when,
             )
             return []
 
@@ -127,18 +130,22 @@ class ResCompany(models.Model):
             if not data:
                 _logger.warning(
                     "SBS: %s no aparece en la respuesta para %s.",
-                    iso, when,
+                    iso,
+                    when,
                 )
                 continue
             sbs_rate = data[rate_field]
             # Odoo guarda rates como inverso: 1 PEN = X currency.
             # SBS publica 1 USD = X PEN, así que invertimos.
             inverted_rate = 1.0 / sbs_rate if sbs_rate else 0.0
-            existing = Rate.search([
-                ("name", "=", when),
-                ("currency_id", "=", currency.id),
-                ("company_id", "=", self.id),
-            ], limit=1)
+            existing = Rate.search(
+                [
+                    ("name", "=", when),
+                    ("currency_id", "=", currency.id),
+                    ("company_id", "=", self.id),
+                ],
+                limit=1,
+            )
             vals = {
                 "name": when,
                 "currency_id": currency.id,
@@ -152,7 +159,11 @@ class ResCompany(models.Model):
             updated.append(iso)
             _logger.info(
                 "SBS: actualizado %s para %s en %s = %s (inverso de %s)",
-                iso, self.name, when, inverted_rate, sbs_rate,
+                iso,
+                self.name,
+                when,
+                inverted_rate,
+                sbs_rate,
             )
         return updated
 

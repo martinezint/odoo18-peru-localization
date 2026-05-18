@@ -3,8 +3,8 @@
 {
     "name": "Peru - PCGE 2019 (completar core + posiciones fiscales por régimen)",
     "summary": "Posiciones fiscales por régimen tributario (General/MYPE/RER/NRUS), "
-               "cuentas analíticas elemento 9 y de orden faltantes en core, "
-               "auto-install del chart en empresas peruanas.",
+    "cuentas analíticas elemento 9 y de orden faltantes en core, "
+    "auto-install del chart en empresas peruanas.",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

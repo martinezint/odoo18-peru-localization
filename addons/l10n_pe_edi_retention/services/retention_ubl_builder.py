@@ -29,6 +29,7 @@ Estructura mínima:
       <sac:SUNATRetentionDocument>+ ... un bloque por cada documento retenido
     </Retention>
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -36,7 +37,6 @@ from datetime import date
 from decimal import Decimal
 
 from lxml import etree
-
 
 # ─── Namespaces SUNAT Retention-1 ──────────────────────────────────────
 NS_RETENTION = "urn:sunat:names:specification:ubl:peru:schema:xsd:Retention-1"
@@ -62,6 +62,7 @@ RETENTION_REGIME_3PCT = "01"  # Tasa vigente desde 2014
 
 # ─── Dataclasses de entrada ────────────────────────────────────────────
 
+
 @dataclass
 class RetentionParty:
     ruc: str
@@ -74,15 +75,16 @@ class RetentionParty:
 @dataclass
 class RetentionDocument:
     """Una factura/comprobante que está siendo objeto de retención."""
-    doc_type_code: str          # SUNAT cat 01: '01' Factura, '08' ND
-    serie_number: str           # "F001-123"
+
+    doc_type_code: str  # SUNAT cat 01: '01' Factura, '08' ND
+    serie_number: str  # "F001-123"
     issue_date: date
-    total_amount: Decimal       # Importe total del comprobante (con IGV)
+    total_amount: Decimal  # Importe total del comprobante (con IGV)
     currency_code: str = "PEN"
 
-    payment_id: str = "1"       # Secuencial del pago (puede ser parcial)
+    payment_id: str = "1"  # Secuencial del pago (puede ser parcial)
     paid_amount: Decimal = Decimal("0")
-    paid_date: date = None      # type: ignore[assignment]
+    paid_date: date = None  # type: ignore[assignment]
 
     retention_amount: Decimal = Decimal("0")
     retention_date: date = None  # type: ignore[assignment]
@@ -94,7 +96,7 @@ class RetentionDocument:
 
 @dataclass
 class Retention:
-    serie_number: str               # "R001-1"
+    serie_number: str  # "R001-1"
     issue_date: date
     note_amount_in_words: str = ""  # "SON TREINTA Y CINCO CON 40/100 SOLES"
 
@@ -105,13 +107,14 @@ class Retention:
     regime_percent: Decimal = Decimal("3")
 
     total_retention_amount: Decimal = Decimal("0")  # Suma de retenciones líneas
-    total_paid: Decimal = Decimal("0")              # Suma de paid_amount líneas
+    total_paid: Decimal = Decimal("0")  # Suma de paid_amount líneas
     currency_code: str = "PEN"
 
     documents: list[RetentionDocument] = field(default_factory=list)
 
 
 # ─── Builder ───────────────────────────────────────────────────────────
+
 
 class RetentionUblBuilder:
     """Construye lxml.etree.Element <Retention> desde un objeto Retention.
@@ -129,23 +132,21 @@ class RetentionUblBuilder:
         self._add_receiver_party(root, retention.receiver)
         self._add_retention_system(root, retention)
         if retention.note_amount_in_words:
-            self._cbc(root, "Note", retention.note_amount_in_words,
-                      languageLocaleID="1000")
-        self._cbc(root, "TotalInvoiceAmount",
-                  _fmt(retention.total_retention_amount),
-                  currencyID=retention.currency_code)
-        self._cbc(root, "TotalPaid",
-                  _fmt(retention.total_paid),
-                  currencyID=retention.currency_code)
+            self._cbc(root, "Note", retention.note_amount_in_words, languageLocaleID="1000")
+        self._cbc(
+            root,
+            "TotalInvoiceAmount",
+            _fmt(retention.total_retention_amount),
+            currencyID=retention.currency_code,
+        )
+        self._cbc(root, "TotalPaid", _fmt(retention.total_paid), currencyID=retention.currency_code)
         for doc in retention.documents:
             self._add_retention_document(root, doc)
         return root
 
     def build_xml_bytes(self, retention: Retention) -> bytes:
         root = self.build(retention)
-        return etree.tostring(
-            root, xml_declaration=True, encoding="UTF-8", standalone=False
-        )
+        return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=False)
 
     # ─── Subsecciones ────────────────────────────────────────────
 
@@ -176,10 +177,14 @@ class RetentionUblBuilder:
         wrapper = etree.SubElement(parent, f"{{{NS_CAC}}}{role_tag}")
         party_el = etree.SubElement(wrapper, f"{{{NS_CAC}}}Party")
         identification = etree.SubElement(party_el, f"{{{NS_CAC}}}PartyIdentification")
-        self._cbc(identification, "ID", party.ruc,
-                  schemeID=party.doc_type_code,
-                  schemeAgencyName="PE:SUNAT",
-                  schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+        self._cbc(
+            identification,
+            "ID",
+            party.ruc,
+            schemeID=party.doc_type_code,
+            schemeAgencyName="PE:SUNAT",
+            schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06",
+        )
         if party.address_street:
             address = etree.SubElement(party_el, f"{{{NS_CAC}}}PostalAddress")
             country = etree.SubElement(address, f"{{{NS_CAC}}}Country")
@@ -197,29 +202,33 @@ class RetentionUblBuilder:
 
     def _add_retention_system(self, root, ret: Retention):
         etree.SubElement(root, f"{{{NS_SAC}}}SUNATRetentionSystemCode").text = ret.regime_code
-        etree.SubElement(root, f"{{{NS_SAC}}}SUNATRetentionPercent").text = _fmt(ret.regime_percent, 0)
+        etree.SubElement(root, f"{{{NS_SAC}}}SUNATRetentionPercent").text = _fmt(
+            ret.regime_percent, 0
+        )
 
     def _add_retention_document(self, root, doc: RetentionDocument):
         d = etree.SubElement(root, f"{{{NS_SAC}}}SUNATRetentionDocument")
         self._cbc(d, "ID", doc.serie_number, schemeID=doc.doc_type_code)
         self._cbc(d, "IssueDate", doc.issue_date.isoformat())
-        self._cbc(d, "TotalInvoiceAmount", _fmt(doc.total_amount),
-                  currencyID=doc.currency_code)
+        self._cbc(d, "TotalInvoiceAmount", _fmt(doc.total_amount), currencyID=doc.currency_code)
 
         payment = etree.SubElement(d, f"{{{NS_CAC}}}Payment")
         self._cbc(payment, "ID", doc.payment_id)
-        self._cbc(payment, "PaidAmount", _fmt(doc.paid_amount),
-                  currencyID=doc.currency_code)
+        self._cbc(payment, "PaidAmount", _fmt(doc.paid_amount), currencyID=doc.currency_code)
         if doc.paid_date:
             self._cbc(payment, "PaidDate", doc.paid_date.isoformat())
 
         info = etree.SubElement(d, f"{{{NS_SAC}}}SUNATRetentionInformation")
-        etree.SubElement(info, f"{{{NS_SAC}}}SUNATRetentionAmount",
-                         currencyID=doc.currency_code).text = _fmt(doc.retention_amount)
+        etree.SubElement(
+            info, f"{{{NS_SAC}}}SUNATRetentionAmount", currencyID=doc.currency_code
+        ).text = _fmt(doc.retention_amount)
         if doc.retention_date:
-            etree.SubElement(info, f"{{{NS_SAC}}}SUNATRetentionDate").text = doc.retention_date.isoformat()
-        etree.SubElement(info, f"{{{NS_SAC}}}SUNATNetTotalCashed",
-                         currencyID=doc.currency_code).text = _fmt(doc.net_total_cashed)
+            etree.SubElement(
+                info, f"{{{NS_SAC}}}SUNATRetentionDate"
+            ).text = doc.retention_date.isoformat()
+        etree.SubElement(
+            info, f"{{{NS_SAC}}}SUNATNetTotalCashed", currencyID=doc.currency_code
+        ).text = _fmt(doc.net_total_cashed)
         # ExchangeRate sólo si moneda distinta de PEN o si rate != 1
         if doc.currency_code != "PEN" or doc.exchange_rate != Decimal("1.000"):
             er = etree.SubElement(info, f"{{{NS_CAC}}}ExchangeRate")

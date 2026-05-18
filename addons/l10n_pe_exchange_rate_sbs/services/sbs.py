@@ -16,15 +16,14 @@ Si SBS cambia el HTML, este módulo se rompe. Mitigación: tests con HTML fixtur
 para detectar cambios temprano + posibilidad futura de añadir otro provider
 (apis.net.pe expone también este dato).
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import date
-from typing import Optional
 
 import requests
 from lxml import html as lxml_html
-
 from odoo import _
 from odoo.exceptions import UserError
 
@@ -62,7 +61,7 @@ class SbsScrapingError(UserError):
     """Error específico del scraping SBS — se propaga al usuario en UI."""
 
 
-def sbs_name_to_iso(name: str) -> Optional[str]:
+def sbs_name_to_iso(name: str) -> str | None:
     """Mapea un nombre de moneda como aparece en SBS al código ISO 4217.
 
     Devuelve None si no hay match (e.g. moneda exótica no listada).
@@ -90,7 +89,7 @@ class SbsScraper:
         self.base_url = base_url
         self.timeout = timeout
 
-    def fetch(self, when: Optional[date] = None) -> dict[str, dict]:
+    def fetch(self, when: date | None = None) -> dict[str, dict]:
         """Devuelve dict moneda → {compra, venta}.
 
         Args:

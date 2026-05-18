@@ -1,8 +1,7 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from odoo import _, api, fields, models
-
+from odoo import api, fields, models
 
 RETENTION_REGIME_SELECTION = [
     ("01", "Tasa 3% (Régimen general desde 2014)"),
@@ -97,8 +96,11 @@ class L10nPeRetention(models.Model):
     )
 
     _sql_constraints = [
-        ("name_company_unique", "UNIQUE(name, company_id)",
-         "Ya existe una retención con ese número en esta empresa."),
+        (
+            "name_company_unique",
+            "UNIQUE(name, company_id)",
+            "Ya existe una retención con ese número en esta empresa.",
+        ),
     ]
 
     @api.depends("line_ids.retention_amount", "line_ids.paid_amount")

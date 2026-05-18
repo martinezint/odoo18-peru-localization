@@ -15,40 +15,63 @@ class TestCronPollSummaryTickets(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test Cron Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-            "l10n_pe_edi_sol_user": "MODDATOS",
-            "l10n_pe_edi_sol_password": "MODDATOS",
-            "l10n_pe_edi_environment": "beta",
-        })
-        cls.partner = cls.env["res.partner"].create({
-            "name": "Cliente Cron",
-            "country_id": cls.pe.id,
-        })
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test Cron Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+                "l10n_pe_edi_sol_user": "MODDATOS",
+                "l10n_pe_edi_sol_password": "MODDATOS",
+                "l10n_pe_edi_environment": "beta",
+            }
+        )
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "Cliente Cron",
+                "country_id": cls.pe.id,
+            }
+        )
 
     def _make_doc(self, ticket=None, status="98"):
         """Crea un l10n.pe.edi.document con un move dummy."""
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_line_ids": [(0, 0, {
-                "name": "X", "quantity": 1, "price_unit": 100.0, "tax_ids": [],
-            })],
-        })
-        doc = self.env["l10n.pe.edi.document"].create({
-            "move_id": move.id,
-            "name": f"20131312955-RC-{move.id}.xml",
-            "xml_signed": base64.b64encode(b"<fake/>"),
-            "state": "sent",
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "X",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        doc = self.env["l10n.pe.edi.document"].create(
+            {
+                "move_id": move.id,
+                "name": f"20131312955-RC-{move.id}.xml",
+                "xml_signed": base64.b64encode(b"<fake/>"),
+                "state": "sent",
+            }
+        )
         if ticket:
-            doc.write({
-                "sunat_summary_ticket": ticket,
-                "sunat_summary_status_code": status,
-            })
+            doc.write(
+                {
+                    "sunat_summary_ticket": ticket,
+                    "sunat_summary_status_code": status,
+                }
+            )
         return doc
 
     def test_cron_skips_docs_without_ticket(self):
@@ -60,7 +83,9 @@ class TestCronPollSummaryTickets(TransactionCase):
             called.append(self_doc.id)
 
         with patch.object(
-            type(doc), "_check_summary_status_one", _track,
+            type(doc),
+            "_check_summary_status_one",
+            _track,
         ):
             self.env["l10n.pe.edi.document"]._cron_poll_summary_tickets()
         self.assertNotIn(doc.id, called)
@@ -74,7 +99,9 @@ class TestCronPollSummaryTickets(TransactionCase):
             called.append(self_doc.id)
 
         with patch.object(
-            type(doc), "_check_summary_status_one", _track,
+            type(doc),
+            "_check_summary_status_one",
+            _track,
         ):
             self.env["l10n.pe.edi.document"]._cron_poll_summary_tickets()
         self.assertNotIn(doc.id, called)
@@ -88,7 +115,9 @@ class TestCronPollSummaryTickets(TransactionCase):
             called.append(self_doc.id)
 
         with patch.object(
-            type(doc_a), "_check_summary_status_one", _track,
+            type(doc_a),
+            "_check_summary_status_one",
+            _track,
         ):
             self.env["l10n.pe.edi.document"]._cron_poll_summary_tickets()
         self.assertIn(doc_a.id, called)
@@ -106,7 +135,9 @@ class TestCronPollSummaryTickets(TransactionCase):
             processed.append(self_doc.id)
 
         with patch.object(
-            type(doc_a), "_check_summary_status_one", _track_a_fail,
+            type(doc_a),
+            "_check_summary_status_one",
+            _track_a_fail,
         ):
             # No debe re-lanzar
             self.env["l10n.pe.edi.document"]._cron_poll_summary_tickets()

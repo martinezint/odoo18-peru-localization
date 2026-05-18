@@ -13,8 +13,8 @@ class ResCompany(models.Model):
         attachment=True,
         groups="base.group_system",
         help="Certificado digital en formato PKCS#12 (.pfx/.p12) emitido por "
-             "una entidad acreditada (Llama.PE, Camerfirma, ESign, etc.) "
-             "o el demo de SUNAT para BETA. NUNCA exponer en API.",
+        "una entidad acreditada (Llama.PE, Camerfirma, ESign, etc.) "
+        "o el demo de SUNAT para BETA. NUNCA exponer en API.",
     )
     l10n_pe_edi_cert_filename = fields.Char(
         string="Nombre archivo cert",
@@ -24,7 +24,7 @@ class ResCompany(models.Model):
         string="Password del .pfx",
         groups="base.group_system",
         help="Password con que se exportó el .pfx. Se guarda en BD — protégelo "
-             "con permisos estrictos a nivel del servidor.",
+        "con permisos estrictos a nivel del servidor.",
     )
     l10n_pe_edi_environment = fields.Selection(
         selection=[
@@ -34,7 +34,7 @@ class ResCompany(models.Model):
         string="Ambiente EDI",
         default="beta",
         help="BETA: usa endpoints de prueba de SUNAT; permite usar cert demo "
-             "Llama-PE. PRODUCCIÓN: requiere cert real y emite documentos legales.",
+        "Llama-PE. PRODUCCIÓN: requiere cert real y emite documentos legales.",
     )
 
     def _get_l10n_pe_edi_signer(self):
@@ -44,15 +44,19 @@ class ResCompany(models.Model):
         """
         self.ensure_one()
         if not self.l10n_pe_edi_cert_pfx:
-            raise UserError(_(
-                "No hay certificado SUNAT configurado en la empresa %s. "
-                "Súbelo en Ajustes → Empresa → Certificado SUNAT."
-            ) % self.name)
+            raise UserError(
+                _(
+                    "No hay certificado SUNAT configurado en la empresa %s. "
+                    "Súbelo en Ajustes → Empresa → Certificado SUNAT."
+                )
+                % self.name
+            )
         if not self.l10n_pe_edi_cert_password:
             raise UserError(_("Falta el password del certificado .pfx."))
 
         # Import diferido para no obligar a tener xmlsec si solo se lee el field.
         import base64
+
         from ..services.xades_signer import XadesBesSigner
 
         pfx_bytes = base64.b64decode(self.l10n_pe_edi_cert_pfx)

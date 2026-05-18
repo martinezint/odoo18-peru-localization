@@ -24,10 +24,12 @@ class TestCompanyUpdate(TransactionCase):
         # EUR puede venir inactiva en algunos installs; la activamos para la prueba.
         if not cls.eur.active:
             cls.eur.active = True
-        cls.company = cls.env["res.company"].create({
-            "name": "Test PE Exchange",
-            "country_id": cls.pe.id,
-        })
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test PE Exchange",
+                "country_id": cls.pe.id,
+            }
+        )
         cls.company.l10n_pe_sbs_currency_ids = [(6, 0, [cls.usd.id, cls.eur.id])]
 
     def _mock_sbs_data(self, when):
@@ -45,11 +47,13 @@ class TestCompanyUpdate(TransactionCase):
             updated = self.company._l10n_pe_update_sbs_rates(when)
         self.assertEqual(set(updated), {"USD", "EUR"})
 
-        usd_rate = self.env["res.currency.rate"].search([
-            ("currency_id", "=", self.usd.id),
-            ("company_id", "=", self.company.id),
-            ("name", "=", when),
-        ])
+        usd_rate = self.env["res.currency.rate"].search(
+            [
+                ("currency_id", "=", self.usd.id),
+                ("company_id", "=", self.company.id),
+                ("name", "=", when),
+            ]
+        )
         self.assertTrue(usd_rate)
         # Odoo guarda 1 PEN = X USD (inverso de SBS); rate_type='venta' por defecto
         # SBS venta USD = 3.752 → rate = 1/3.752 ≈ 0.266525
@@ -65,11 +69,13 @@ class TestCompanyUpdate(TransactionCase):
             # Segundo run: debe sobreescribir, no duplicar
             self.company._l10n_pe_update_sbs_rates(when)
 
-        usd_rates = self.env["res.currency.rate"].search([
-            ("currency_id", "=", self.usd.id),
-            ("company_id", "=", self.company.id),
-            ("name", "=", when),
-        ])
+        usd_rates = self.env["res.currency.rate"].search(
+            [
+                ("currency_id", "=", self.usd.id),
+                ("company_id", "=", self.company.id),
+                ("name", "=", when),
+            ]
+        )
         self.assertEqual(len(usd_rates), 1, "Debe haber 1 sola rate por (currency, company, fecha)")
 
     def test_update_uses_compra_when_configured(self):
@@ -81,11 +87,14 @@ class TestCompanyUpdate(TransactionCase):
         ):
             self.company._l10n_pe_update_sbs_rates(when)
 
-        usd_rate = self.env["res.currency.rate"].search([
-            ("currency_id", "=", self.usd.id),
-            ("company_id", "=", self.company.id),
-            ("name", "=", when),
-        ], limit=1)
+        usd_rate = self.env["res.currency.rate"].search(
+            [
+                ("currency_id", "=", self.usd.id),
+                ("company_id", "=", self.company.id),
+                ("name", "=", when),
+            ],
+            limit=1,
+        )
         # SBS compra USD = 3.745 → rate = 1/3.745
         self.assertAlmostEqual(usd_rate.rate, 1.0 / 3.745, places=6)
 
@@ -109,12 +118,13 @@ class TestCompanyUpdate(TransactionCase):
     def test_cron_iterates_only_pe_companies_with_auto_update(self):
         # Empresa US (no PE): debería ser skip
         us = self.env.ref("base.us")
-        us_co = self.env["res.company"].create({
-            "name": "US Co",
-            "country_id": us.id,
-            "l10n_pe_sbs_auto_update": True,
-        })
-        when = date(2026, 5, 16)
+        us_co = self.env["res.company"].create(
+            {
+                "name": "US Co",
+                "country_id": us.id,
+                "l10n_pe_sbs_auto_update": True,
+            }
+        )
         call_companies = []
 
         def _track_call(self_company, when=None):

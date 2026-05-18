@@ -3,9 +3,9 @@
 {
     "name": "Peru - Sistema de Detracciones (SPOT) - tracking básico",
     "summary": "Catálogo SUNAT R.S. 183-2004 (Anexos 2/3), código de detracción "
-               "en product.template, cálculo automático de monto detraído y "
-               "constancia manual en account.move. (v1: tracking sin "
-               "automatización de wizard de pago — eso vendrá en v2.)",
+    "en product.template, cálculo automático de monto detraído y "
+    "constancia manual en account.move. (v1: tracking sin "
+    "automatización de wizard de pago — eso vendrá en v2.)",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

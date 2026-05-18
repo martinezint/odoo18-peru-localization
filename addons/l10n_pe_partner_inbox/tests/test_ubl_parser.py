@@ -8,7 +8,6 @@ from odoo.tests.common import TransactionCase, tagged
 
 from ..services.ubl_parser import UblParseError, parse_ubl
 
-
 SAMPLE_INVOICE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -57,7 +56,7 @@ SAMPLE_INVOICE_XML = """<?xml version="1.0" encoding="UTF-8"?>
     </cac:Price>
   </cac:InvoiceLine>
 </Invoice>
-""".encode("utf-8")
+""".encode()
 
 SAMPLE_CREDIT_NOTE_XML = """<?xml version="1.0" encoding="UTF-8"?>
 <CreditNote xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2"
@@ -84,7 +83,7 @@ SAMPLE_CREDIT_NOTE_XML = """<?xml version="1.0" encoding="UTF-8"?>
     <cac:Price><cbc:PriceAmount currencyID="PEN">50.00</cbc:PriceAmount></cac:Price>
   </cac:CreditNoteLine>
 </CreditNote>
-""".encode("utf-8")
+""".encode()
 
 
 @tagged("post_install", "-at_install", "l10n_pe_partner_inbox")
@@ -122,8 +121,7 @@ class TestUblParser(TransactionCase):
     def test_parse_invoice_supplier(self):
         parsed = parse_ubl(SAMPLE_INVOICE_XML)
         self.assertEqual(parsed.supplier_ruc, "20131312955")
-        self.assertEqual(parsed.supplier_name,
-                         "SUPERINTENDENCIA NACIONAL DE ADUANAS")
+        self.assertEqual(parsed.supplier_name, "SUPERINTENDENCIA NACIONAL DE ADUANAS")
 
     def test_parse_invoice_customer(self):
         parsed = parse_ubl(SAMPLE_INVOICE_XML)

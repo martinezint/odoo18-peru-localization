@@ -57,6 +57,7 @@ Catálogos SUNAT relevantes:
 - 20: Motivo traslado (01 Venta, 02 Compra, 04 Traslado entre estab. del mismo
                          contribuyente, 09 Importación, 13 Otros, ...)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -64,7 +65,6 @@ from datetime import date, time
 from decimal import Decimal
 
 from lxml import etree
-
 
 NS_DESPATCH = "urn:oasis:names:specification:ubl:schema:xsd:DespatchAdvice-2"
 NS_CBC = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
@@ -98,6 +98,7 @@ MOTIVO_OTROS = "13"
 @dataclass
 class Party:
     """Emisor / destinatario / transportista / vendedor."""
+
     ruc: str
     doc_type_code: str  # cat 06: '6' RUC, '1' DNI
     legal_name: str
@@ -106,7 +107,8 @@ class Party:
 @dataclass
 class Address:
     """Dirección con ubigeo SUNAT (6 dígitos)."""
-    ubigeo: str = ""             # Ej. '150101'
+
+    ubigeo: str = ""  # Ej. '150101'
     street: str = ""
     address_type_code: str = ""  # opcional, código de tipo establecimiento
 
@@ -114,39 +116,42 @@ class Address:
 @dataclass
 class ShipmentStage:
     """Etapa del envío con modalidad de transporte."""
+
     transport_mode: str = TRANSPORT_MODE_PRIVATE
     transit_start_date: date = None  # type: ignore
-    carrier_ruc: str = ""             # transportista (para público) o emisor (privado)
+    carrier_ruc: str = ""  # transportista (para público) o emisor (privado)
     carrier_name: str = ""
-    license_plate: str = ""           # placa del vehículo
-    driver_doc_type: str = "1"        # cat 06
-    driver_doc_number: str = ""       # DNI o equivalente
+    license_plate: str = ""  # placa del vehículo
+    driver_doc_type: str = "1"  # cat 06
+    driver_doc_number: str = ""  # DNI o equivalente
 
 
 @dataclass
 class DespatchLine:
     """Línea de la guía: ítem que se traslada."""
+
     line_id: int
     description: str
     quantity: Decimal
     unit_code: str = "NIU"
-    item_code: str = ""               # SKU/código interno
+    item_code: str = ""  # SKU/código interno
 
 
 @dataclass
 class GreRemitente:
     """Guía de Remisión Electrónica Remitente."""
-    serie_number: str                 # 'T001-1'
+
+    serie_number: str  # 'T001-1'
     issue_date: date
     issue_time: time
-    doc_type_code: str = "09"         # cat 01: 09 GRE Remitente
+    doc_type_code: str = "09"  # cat 01: 09 GRE Remitente
 
-    supplier: Party = field(default_factory=lambda: Party("", "6", ""))      # Emisor/Remitente
-    customer: Party = field(default_factory=lambda: Party("", "6", ""))      # Destinatario
+    supplier: Party = field(default_factory=lambda: Party("", "6", ""))  # Emisor/Remitente
+    customer: Party = field(default_factory=lambda: Party("", "6", ""))  # Destinatario
 
-    motivo_traslado: str = MOTIVO_VENTA            # cat 20
-    motivo_descripcion: str = ""                   # texto libre acompaña al code
-    gross_weight: Decimal = Decimal("0.000")        # KGM
+    motivo_traslado: str = MOTIVO_VENTA  # cat 20
+    motivo_descripcion: str = ""  # texto libre acompaña al code
+    gross_weight: Decimal = Decimal("0.000")  # KGM
     total_packages: int = 0
     split_consignment: bool = False
 
@@ -176,7 +181,9 @@ class GreRemitenteUblBuilder:
     def build_xml_bytes(self, gre: GreRemitente) -> bytes:
         return etree.tostring(
             self.build(gre),
-            xml_declaration=True, encoding="UTF-8", standalone=False,
+            xml_declaration=True,
+            encoding="UTF-8",
+            standalone=False,
         )
 
     def _add_extensions(self, root):
@@ -191,7 +198,9 @@ class GreRemitenteUblBuilder:
         self._cbc(root, "IssueDate", gre.issue_date.isoformat())
         self._cbc(root, "IssueTime", gre.issue_time.isoformat())
         self._cbc(
-            root, "DespatchAdviceTypeCode", gre.doc_type_code,
+            root,
+            "DespatchAdviceTypeCode",
+            gre.doc_type_code,
             listAgencyName="PE:SUNAT",
             listName="Tipo de Documento",
             listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01",
@@ -213,10 +222,14 @@ class GreRemitenteUblBuilder:
         wrapper = etree.SubElement(parent, f"{{{NS_CAC}}}{role_tag}")
         party_el = etree.SubElement(wrapper, f"{{{NS_CAC}}}Party")
         identification = etree.SubElement(party_el, f"{{{NS_CAC}}}PartyIdentification")
-        self._cbc(identification, "ID", party.ruc,
-                  schemeID=party.doc_type_code,
-                  schemeAgencyName="PE:SUNAT",
-                  schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+        self._cbc(
+            identification,
+            "ID",
+            party.ruc,
+            schemeID=party.doc_type_code,
+            schemeAgencyName="PE:SUNAT",
+            schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06",
+        )
         legal = etree.SubElement(party_el, f"{{{NS_CAC}}}PartyLegalEntity")
         self._cbc(legal, "RegistrationName", party.legal_name)
 
@@ -230,19 +243,18 @@ class GreRemitenteUblBuilder:
         ship = etree.SubElement(root, f"{{{NS_CAC}}}Shipment")
         self._cbc(ship, "ID", "SUNAT_Envio")
         self._cbc(
-            ship, "HandlingCode", gre.motivo_traslado,
+            ship,
+            "HandlingCode",
+            gre.motivo_traslado,
             listAgencyName="PE:SUNAT",
             listName="Motivo de traslado",
             listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo20",
         )
         if gre.motivo_descripcion:
             self._cbc(ship, "Information", gre.motivo_descripcion)
-        self._cbc(ship, "GrossWeightMeasure", _fmt(gre.gross_weight, 3),
-                  unitCode="KGM")
-        self._cbc(ship, "TotalTransportHandlingUnitQuantity",
-                  str(max(gre.total_packages, 1)))
-        self._cbc(ship, "SplitConsignmentIndicator",
-                  "true" if gre.split_consignment else "false")
+        self._cbc(ship, "GrossWeightMeasure", _fmt(gre.gross_weight, 3), unitCode="KGM")
+        self._cbc(ship, "TotalTransportHandlingUnitQuantity", str(max(gre.total_packages, 1)))
+        self._cbc(ship, "SplitConsignmentIndicator", "true" if gre.split_consignment else "false")
         self._add_shipment_stage(ship, gre.stage)
         self._add_delivery(ship, gre.delivery)
         self._add_origin(ship, gre.origin)
@@ -250,7 +262,9 @@ class GreRemitenteUblBuilder:
     def _add_shipment_stage(self, parent, stage: ShipmentStage):
         st = etree.SubElement(parent, f"{{{NS_CAC}}}ShipmentStage")
         self._cbc(
-            st, "TransportModeCode", stage.transport_mode,
+            st,
+            "TransportModeCode",
+            stage.transport_mode,
             listAgencyName="PE:SUNAT",
             listName="Modalidad de Transporte",
             listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo18",
@@ -270,8 +284,7 @@ class GreRemitenteUblBuilder:
             self._cbc(rt, "LicensePlateID", stage.license_plate)
         if stage.driver_doc_number:
             dp = etree.SubElement(st, f"{{{NS_CAC}}}DriverPerson")
-            self._cbc(dp, "ID", stage.driver_doc_number,
-                      schemeID=stage.driver_doc_type or "1")
+            self._cbc(dp, "ID", stage.driver_doc_number, schemeID=stage.driver_doc_type or "1")
 
     def _add_delivery(self, parent, addr: Address):
         if not addr.ubigeo and not addr.street:
@@ -299,8 +312,7 @@ class GreRemitenteUblBuilder:
     def _add_line(self, root, line: DespatchLine):
         ln = etree.SubElement(root, f"{{{NS_CAC}}}DespatchLine")
         self._cbc(ln, "ID", str(line.line_id))
-        self._cbc(ln, "DeliveredQuantity", _fmt(line.quantity, 3),
-                  unitCode=line.unit_code)
+        self._cbc(ln, "DeliveredQuantity", _fmt(line.quantity, 3), unitCode=line.unit_code)
         order_ref = etree.SubElement(ln, f"{{{NS_CAC}}}OrderLineReference")
         self._cbc(order_ref, "LineID", str(line.line_id))
         item = etree.SubElement(ln, f"{{{NS_CAC}}}Item")

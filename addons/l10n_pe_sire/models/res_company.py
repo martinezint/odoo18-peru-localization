@@ -1,7 +1,7 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from datetime import timezone
+from datetime import UTC
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
@@ -18,7 +18,7 @@ class ResCompany(models.Model):
         string="Client ID SIRE",
         groups="base.group_system",
         help="Client ID OAuth2 emitido por SUNAT para la API SIRE. "
-             "Suele ser distinto del usado para GRE.",
+        "Suele ser distinto del usado para GRE.",
     )
     l10n_pe_sire_client_secret = fields.Char(
         string="Client Secret SIRE",
@@ -40,9 +40,9 @@ class ResCompany(models.Model):
         if not self.vat:
             raise UserError(_("Empresa %s no tiene RUC configurado.") % self.name)
         if not self.l10n_pe_sire_client_id or not self.l10n_pe_sire_client_secret:
-            raise UserError(_(
-                "Faltan credenciales SIRE (Client ID / Secret) en la empresa %s."
-            ) % self.name)
+            raise UserError(
+                _("Faltan credenciales SIRE (Client ID / Secret) en la empresa %s.") % self.name
+            )
 
         from ..services.sunat_sire_rest import SireTokenCache, SunatSireRestClient
 
@@ -51,7 +51,7 @@ class ResCompany(models.Model):
             cache.token = self.l10n_pe_sire_token
             expires = self.l10n_pe_sire_token_expires_at
             if expires.tzinfo is None:
-                expires = expires.replace(tzinfo=timezone.utc)
+                expires = expires.replace(tzinfo=UTC)
             cache.expires_at = expires
 
         return SunatSireRestClient(

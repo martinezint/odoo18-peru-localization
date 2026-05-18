@@ -30,9 +30,7 @@ class AccountMove(models.Model):
         self.ensure_one()
         doc = self.l10n_pe_edi_document_id
         if not doc or not doc.xml_signed:
-            raise UserError(_(
-                "No hay XML firmado para enviar. Primero genera el EDI."
-            ))
+            raise UserError(_("No hay XML firmado para enviar. Primero genera el EDI."))
         if doc.state == "accepted":
             _logger.info("EDI %s ya aceptado por SUNAT; skip.", doc.name)
             return doc
@@ -49,11 +47,13 @@ class AccountMove(models.Model):
         try:
             cdr_bytes = client.send_bill(zip_filename, zip_bytes)
         except SunatSoapError as exc:
-            doc.write({
-                "state": "error",
-                "error_message": str(exc),
-                "sunat_sent_at": fields.Datetime.now(),
-            })
+            doc.write(
+                {
+                    "state": "error",
+                    "error_message": str(exc),
+                    "sunat_sent_at": fields.Datetime.now(),
+                }
+            )
             raise UserError(_("SUNAT rechazó la conexión: %s") % exc) from exc
 
         # 3. Parse CDR
@@ -71,17 +71,22 @@ class AccountMove(models.Model):
             new_state = "error"
 
         cdr_filename = f"R-{xml_filename}"
-        doc.write({
-            "state": new_state,
-            "sunat_cdr": base64.b64encode(cdr_bytes),
-            "sunat_cdr_filename": cdr_filename,
-            "sunat_response_code": cdr.response_code,
-            "sunat_response_description": cdr.description,
-            "sunat_sent_at": fields.Datetime.now(),
-            "error_message": cdr.description if new_state in ("rejected", "error") else False,
-        })
+        doc.write(
+            {
+                "state": new_state,
+                "sunat_cdr": base64.b64encode(cdr_bytes),
+                "sunat_cdr_filename": cdr_filename,
+                "sunat_response_code": cdr.response_code,
+                "sunat_response_description": cdr.description,
+                "sunat_sent_at": fields.Datetime.now(),
+                "error_message": cdr.description if new_state in ("rejected", "error") else False,
+            }
+        )
         _logger.info(
             "SUNAT respondió code=%s desc=%r para %s → state=%s",
-            cdr.response_code, cdr.description, doc.name, new_state,
+            cdr.response_code,
+            cdr.description,
+            doc.name,
+            new_state,
         )
         return doc

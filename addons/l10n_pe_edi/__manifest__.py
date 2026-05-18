@@ -3,9 +3,9 @@
 {
     "name": "Peru - EDI núcleo (UBL 2.1 + firma XAdES-BES)",
     "summary": "Generación de UBL 2.1 SUNAT para Factura tipo 01, firma "
-               "XAdES-BES con python-xmlsec, modelo l10n_pe_edi.document, "
-               "campos de certificado en res.company. Transport-agnostic — "
-               "la entrega a SUNAT vive en l10n_pe_edi_transport_sunat_soap.",
+    "XAdES-BES con python-xmlsec, modelo l10n_pe_edi.document, "
+    "campos de certificado en res.company. Transport-agnostic — "
+    "la entrega a SUNAT vive en l10n_pe_edi_transport_sunat_soap.",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

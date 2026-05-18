@@ -10,14 +10,14 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.gre_remitente_ubl_builder import (
+    TRANSPORT_MODE_PRIVATE,
+    TRANSPORT_MODE_PUBLIC,
     Address,
     DespatchLine,
     GreRemitente,
     GreRemitenteUblBuilder,
     Party,
     ShipmentStage,
-    TRANSPORT_MODE_PRIVATE,
-    TRANSPORT_MODE_PUBLIC,
 )
 
 _logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ class StockPicking(models.Model):
         comodel_name="res.partner",
         string="Transportista",
         help="Solo para transporte público. Para transporte privado, el "
-             "remitente actúa como transportista.",
+        "remitente actúa como transportista.",
     )
     l10n_pe_gre_license_plate = fields.Char(
         string="Placa del vehículo",
@@ -123,9 +123,9 @@ class StockPicking(models.Model):
                 ("l10n_pe_gre_destination_ubigeo", rec.l10n_pe_gre_destination_ubigeo),
             ]:
                 if val and (len(val) != 6 or not val.isdigit()):
-                    raise UserError(_(
-                        "Ubigeo %s debe ser 6 dígitos numéricos (INEI/SUNAT)."
-                    ) % fname)
+                    raise UserError(
+                        _("Ubigeo %s debe ser 6 dígitos numéricos (INEI/SUNAT).") % fname
+                    )
 
     # ─── Acción: generar GRE Remitente UBL ────────────────────────
 
@@ -151,9 +151,8 @@ class StockPicking(models.Model):
         signer.sign(root, signature_id="SignatureSP")
 
         from lxml import etree
-        xml_bytes = etree.tostring(
-            root, xml_declaration=True, encoding="UTF-8", standalone=False
-        )
+
+        xml_bytes = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=False)
 
         # 4. Persistir en l10n.pe.edi.document
         # Como no hay account.move, creamos un doc sin move_id... pero el modelo
@@ -178,10 +177,12 @@ class StockPicking(models.Model):
             _logger.info("GRE Remitente generado para %s → %s", self.name, doc.name)
             return doc
         else:
-            raise UserError(_(
-                "GRE requiere un account.move asociado (limitación temporal). "
-                "Crea una factura para este picking primero, o vincula manualmente."
-            ))
+            raise UserError(
+                _(
+                    "GRE requiere un account.move asociado (limitación temporal). "
+                    "Crea una factura para este picking primero, o vincula manualmente."
+                )
+            )
 
     def _l10n_pe_gre_validate_required(self):
         self.ensure_one()
@@ -203,9 +204,10 @@ class StockPicking(models.Model):
         if not self.l10n_pe_gre_destination_ubigeo:
             missing.append("ubigeo destino")
         if missing:
-            raise UserError(_(
-                "Faltan datos obligatorios para GRE en el picking %s: %s"
-            ) % (self.name, ", ".join(missing)))
+            raise UserError(
+                _("Faltan datos obligatorios para GRE en el picking %s: %s")
+                % (self.name, ", ".join(missing))
+            )
 
     def _l10n_pe_gre_build_dataclass(self) -> GreRemitente:
         self.ensure_one()
@@ -249,13 +251,15 @@ class StockPicking(models.Model):
         # Líneas desde stock.move
         lines = []
         for i, move in enumerate(self.move_ids, start=1):
-            lines.append(DespatchLine(
-                line_id=i,
-                description=move.product_id.display_name or "Producto",
-                quantity=Decimal(str(move.product_uom_qty)),
-                unit_code="NIU",
-                item_code=move.product_id.default_code or "",
-            ))
+            lines.append(
+                DespatchLine(
+                    line_id=i,
+                    description=move.product_id.display_name or "Producto",
+                    quantity=Decimal(str(move.product_uom_qty)),
+                    unit_code="NIU",
+                    item_code=move.product_id.default_code or "",
+                )
+            )
 
         # Serie + número del picking name (best effort)
         serie_number = (self.name or "T001-1").replace("/", "-").lstrip("-")

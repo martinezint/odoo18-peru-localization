@@ -11,5 +11,5 @@ class ProductTemplate(models.Model):
         comodel_name="l10n.pe.detraccion.code",
         string="Código de Detracción",
         help="Código SUNAT R.S. 183-2004 si el producto/servicio está sujeto a "
-             "detracción. Vacío = no aplica.",
+        "detracción. Vacío = no aplica.",
     )

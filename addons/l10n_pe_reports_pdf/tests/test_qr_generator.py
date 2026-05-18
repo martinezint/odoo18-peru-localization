@@ -38,16 +38,16 @@ class TestQrDataString(TransactionCase):
     def test_field_order(self):
         out = self._data()
         cols = out.split("|")
-        self.assertEqual(cols[0], "20131312955")     # RUC
-        self.assertEqual(cols[1], "01")              # tipo doc
-        self.assertEqual(cols[2], "F001")            # serie
-        self.assertEqual(cols[3], "123")             # número
-        self.assertEqual(cols[4], "18.00")           # IGV
-        self.assertEqual(cols[5], "118.00")          # total
-        self.assertEqual(cols[6], "2026-05-18")      # fecha
-        self.assertEqual(cols[7], "6")               # cliente tipo doc
-        self.assertEqual(cols[8], "20100047218")     # cliente número
-        self.assertEqual(cols[9], "ABC123==")        # hash
+        self.assertEqual(cols[0], "20131312955")  # RUC
+        self.assertEqual(cols[1], "01")  # tipo doc
+        self.assertEqual(cols[2], "F001")  # serie
+        self.assertEqual(cols[3], "123")  # número
+        self.assertEqual(cols[4], "18.00")  # IGV
+        self.assertEqual(cols[5], "118.00")  # total
+        self.assertEqual(cols[6], "2026-05-18")  # fecha
+        self.assertEqual(cols[7], "6")  # cliente tipo doc
+        self.assertEqual(cols[8], "20100047218")  # cliente número
+        self.assertEqual(cols[9], "ABC123==")  # hash
 
     def test_leading_zeros_stripped_from_number(self):
         out = self._data(number="00000123")
@@ -97,7 +97,19 @@ class TestQrPngGenerator(TransactionCase):
         self.assertTrue(png.startswith(b"\x89PNG"))
 
     def test_long_string_renders(self):
-        data = "|".join(["20131312955", "01", "F001", "123", "18.00", "118.00",
-                         "2026-05-18", "6", "20100047218", "A" * 100])
+        data = "|".join(
+            [
+                "20131312955",
+                "01",
+                "F001",
+                "123",
+                "18.00",
+                "118.00",
+                "2026-05-18",
+                "6",
+                "20100047218",
+                "A" * 100,
+            ]
+        )
         png = build_qr_png_bytes(data)
         self.assertGreater(len(png), 100)

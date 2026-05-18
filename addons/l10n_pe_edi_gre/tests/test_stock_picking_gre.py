@@ -14,17 +14,22 @@ class TestStockPickingGre(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.partner = cls.env["res.partner"].create({
-            "name": "Cliente GRE",
-            "country_id": cls.pe.id,
-            "vat": "20100047218",
-        })
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "Cliente GRE",
+                "country_id": cls.pe.id,
+                "vat": "20100047218",
+            }
+        )
 
     def _new_picking(self, **vals):
         # Usamos un picking_type ya existente (cualquier outgoing del sistema)
-        picking_type = self.env["stock.picking.type"].search([
-            ("code", "=", "outgoing"),
-        ], limit=1)
+        picking_type = self.env["stock.picking.type"].search(
+            [
+                ("code", "=", "outgoing"),
+            ],
+            limit=1,
+        )
         defaults = {
             "partner_id": self.partner.id,
             "picking_type_id": picking_type.id,

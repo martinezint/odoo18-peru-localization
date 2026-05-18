@@ -15,7 +15,6 @@ from ..services.ple_filename import (
     build_ple_filename,
 )
 
-
 LIBRO_SELECTION = [
     ("14_1", "14.1 — Registro de Ventas e Ingresos"),
     ("8_1", "8.1 — Registro de Compras"),
@@ -50,8 +49,11 @@ class L10nPePleWizard(models.TransientModel):
     def action_generate(self):
         """Genera el TXT en memoria y muestra el wizard con link de descarga."""
         self.ensure_one()
-        if not self.period_yyyymm or len(self.period_yyyymm) != 6 \
-                or not self.period_yyyymm.isdigit():
+        if (
+            not self.period_yyyymm
+            or len(self.period_yyyymm) != 6
+            or not self.period_yyyymm.isdigit()
+        ):
             raise UserError(_("Período debe ser YYYYMM (6 dígitos)."))
         if not self.company_id.vat:
             raise UserError(_("La empresa %s no tiene RUC configurado.") % self.company_id.name)
@@ -73,11 +75,13 @@ class L10nPePleWizard(models.TransientModel):
             has_movements=count > 0,
             has_info=count > 0,
         )
-        self.write({
-            "file_data": base64.b64encode(buf.getvalue()),
-            "file_name": filename,
-            "line_count": count,
-        })
+        self.write(
+            {
+                "file_data": base64.b64encode(buf.getvalue()),
+                "file_name": filename,
+                "line_count": count,
+            }
+        )
 
         # Re-abre el wizard con el archivo listo para descargar
         return {

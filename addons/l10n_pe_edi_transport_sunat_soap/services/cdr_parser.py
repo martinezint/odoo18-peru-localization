@@ -27,6 +27,7 @@ Estructura típica:
       <cbc:Note>Notas/observaciones opcionales</cbc:Note>
     </ar:ApplicationResponse>
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -44,6 +45,7 @@ NSMAP = {"ar": NS_AR, "cac": NS_CAC, "cbc": NS_CBC}
 @dataclass
 class CdrResponse:
     """Respuesta parseada del CDR SUNAT."""
+
     response_code: str = ""
     description: str = ""
     document_ref: str = ""

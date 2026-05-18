@@ -10,7 +10,6 @@ from datetime import date, time
 from decimal import Decimal
 
 from lxml import etree
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.ubl_builder import (
@@ -47,16 +46,18 @@ def _make_minimal_invoice() -> Invoice:
             legal_name="BANCO DE CREDITO DEL PERU",
         ),
     )
-    inv.lines.append(InvoiceLine(
-        line_id=1,
-        description="Servicio de consultoría",
-        quantity=Decimal("1"),
-        unit_price=Decimal("100.00"),
-        line_extension_amount=Decimal("100.00"),
-        igv_amount=Decimal("18.00"),
-        igv_affectation_code="10",
-        igv_percentage=Decimal("18"),
-    ))
+    inv.lines.append(
+        InvoiceLine(
+            line_id=1,
+            description="Servicio de consultoría",
+            quantity=Decimal("1"),
+            unit_price=Decimal("100.00"),
+            line_extension_amount=Decimal("100.00"),
+            igv_amount=Decimal("18.00"),
+            igv_affectation_code="10",
+            igv_percentage=Decimal("18"),
+        )
+    )
     inv.total_line_extension = Decimal("100.00")
     inv.total_taxed = Decimal("100.00")
     inv.total_igv = Decimal("18.00")
@@ -68,7 +69,6 @@ def _make_minimal_invoice() -> Invoice:
 
 @tagged("post_install", "-at_install", "l10n_pe_edi")
 class TestUblBuilder(TransactionCase):
-
     def setUp(self):
         super().setUp()
         self.builder = UblInvoiceBuilder()
@@ -78,39 +78,25 @@ class TestUblBuilder(TransactionCase):
     # ─── Estructura ───────────────────────────────────────────────
 
     def test_root_is_invoice_in_correct_namespace(self):
-        self.assertEqual(
-            etree.QName(self.root.tag).localname, "Invoice"
-        )
+        self.assertEqual(etree.QName(self.root.tag).localname, "Invoice")
         self.assertEqual(
             etree.QName(self.root.tag).namespace,
             "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2",
         )
 
     def test_has_ubl_extensions_with_signature_placeholder(self):
-        path = (
-            f"{{{NS_EXT}}}UBLExtensions"
-            f"/{{{NS_EXT}}}UBLExtension"
-            f"/{{{NS_EXT}}}ExtensionContent"
-        )
+        path = f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension/{{{NS_EXT}}}ExtensionContent"
         ext = self.root.find(path)
         self.assertIsNotNone(ext, "Falta placeholder de firma ext:ExtensionContent")
         # Placeholder está vacío (para firmar después)
         self.assertEqual(len(list(ext)), 0)
 
     def test_has_required_header_fields(self):
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_CBC}}}UBLVersionID"), "2.1"
-        )
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_CBC}}}CustomizationID"), "2.0"
-        )
+        self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}UBLVersionID"), "2.1")
+        self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}CustomizationID"), "2.0")
         self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}ID"), "F001-1")
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_CBC}}}IssueDate"), "2026-05-15"
-        )
-        self.assertEqual(
-            self.root.findtext(f"{{{NS_CBC}}}DocumentCurrencyCode"), "PEN"
-        )
+        self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}IssueDate"), "2026-05-15")
+        self.assertEqual(self.root.findtext(f"{{{NS_CBC}}}DocumentCurrencyCode"), "PEN")
 
     def test_invoice_type_code_has_list_id(self):
         type_el = self.root.find(f"{{{NS_CBC}}}InvoiceTypeCode")
@@ -119,9 +105,7 @@ class TestUblBuilder(TransactionCase):
 
     def test_note_with_language_locale_id(self):
         note = self.root.find(f"{{{NS_CBC}}}Note")
-        self.assertEqual(
-            note.text, "SON CIENTO DIECIOCHO CON 00/100 SOLES"
-        )
+        self.assertEqual(note.text, "SON CIENTO DIECIOCHO CON 00/100 SOLES")
         self.assertEqual(note.get("languageLocaleID"), "1000")
 
     # ─── Supplier / Customer ──────────────────────────────────────
@@ -167,9 +151,7 @@ class TestUblBuilder(TransactionCase):
     # ─── TaxTotal ─────────────────────────────────────────────────
 
     def test_global_tax_total_igv_amount(self):
-        amt = self.root.findtext(
-            f"{{{NS_CAC}}}TaxTotal/{{{NS_CBC}}}TaxAmount"
-        )
+        amt = self.root.findtext(f"{{{NS_CAC}}}TaxTotal/{{{NS_CBC}}}TaxAmount")
         self.assertEqual(amt, "18.00")
 
     def test_tax_scheme_is_igv(self):
@@ -182,15 +164,11 @@ class TestUblBuilder(TransactionCase):
     # ─── LegalMonetaryTotal ───────────────────────────────────────
 
     def test_payable_amount(self):
-        amt = self.root.findtext(
-            f"{{{NS_CAC}}}LegalMonetaryTotal/{{{NS_CBC}}}PayableAmount"
-        )
+        amt = self.root.findtext(f"{{{NS_CAC}}}LegalMonetaryTotal/{{{NS_CBC}}}PayableAmount")
         self.assertEqual(amt, "118.00")
 
     def test_line_extension_amount_total(self):
-        amt = self.root.findtext(
-            f"{{{NS_CAC}}}LegalMonetaryTotal/{{{NS_CBC}}}LineExtensionAmount"
-        )
+        amt = self.root.findtext(f"{{{NS_CAC}}}LegalMonetaryTotal/{{{NS_CBC}}}LineExtensionAmount")
         self.assertEqual(amt, "100.00")
 
     # ─── InvoiceLine ──────────────────────────────────────────────
@@ -200,16 +178,13 @@ class TestUblBuilder(TransactionCase):
         self.assertEqual(len(lines), 1)
 
     def test_line_quantity_and_unit(self):
-        qty_el = self.root.find(
-            f"{{{NS_CAC}}}InvoiceLine/{{{NS_CBC}}}InvoicedQuantity"
-        )
+        qty_el = self.root.find(f"{{{NS_CAC}}}InvoiceLine/{{{NS_CBC}}}InvoicedQuantity")
         self.assertEqual(qty_el.text, "1.000")
         self.assertEqual(qty_el.get("unitCode"), "NIU")
 
     def test_line_item_description(self):
         desc = self.root.findtext(
-            f"{{{NS_CAC}}}InvoiceLine"
-            f"/{{{NS_CAC}}}Item/{{{NS_CBC}}}Description"
+            f"{{{NS_CAC}}}InvoiceLine/{{{NS_CAC}}}Item/{{{NS_CBC}}}Description"
         )
         self.assertEqual(desc, "Servicio de consultoría")
 

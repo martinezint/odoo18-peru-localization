@@ -14,7 +14,6 @@ from ..services.ple_filename import (
 
 @tagged("post_install", "-at_install", "l10n_pe_ple")
 class TestPleFilename(TransactionCase):
-
     def test_ventas_basic(self):
         fn = build_ple_filename(
             ruc="20131312955",
@@ -68,26 +67,32 @@ class TestPleFilename(TransactionCase):
     def test_invalid_ruc_length_raises(self):
         with self.assertRaisesRegex(ValueError, "ruc"):
             build_ple_filename(
-                ruc="201313", period_yyyymm="202604",
+                ruc="201313",
+                period_yyyymm="202604",
                 libro_code=LIBRO_VENTAS_14_1,
             )
 
     def test_invalid_periodo_length_raises(self):
         with self.assertRaisesRegex(ValueError, "period"):
             build_ple_filename(
-                ruc="20131312955", period_yyyymm="20260",
+                ruc="20131312955",
+                period_yyyymm="20260",
                 libro_code=LIBRO_VENTAS_14_1,
             )
 
     def test_invalid_libro_code_raises(self):
         with self.assertRaisesRegex(ValueError, "libro"):
             build_ple_filename(
-                ruc="20131312955", period_yyyymm="202604", libro_code="14",
+                ruc="20131312955",
+                period_yyyymm="202604",
+                libro_code="14",
             )
 
     def test_invalid_currency_raises(self):
         with self.assertRaisesRegex(ValueError, "currency"):
             build_ple_filename(
-                ruc="20131312955", period_yyyymm="202604",
-                libro_code=LIBRO_VENTAS_14_1, currency_indicator="9",
+                ruc="20131312955",
+                period_yyyymm="202604",
+                libro_code=LIBRO_VENTAS_14_1,
+                currency_indicator="9",
             )

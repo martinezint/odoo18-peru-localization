@@ -30,7 +30,8 @@ def _l10n_pe_coa_post_init(env):
         if company.chart_template:
             _logger.info(
                 "l10n_pe_coa_pcge2019: empresa %s ya tiene chart %s, omitida.",
-                company.name, company.chart_template,
+                company.name,
+                company.chart_template,
             )
             continue
         _logger.info("l10n_pe_coa_pcge2019: aplicando chart 'pe' a empresa %s.", company.name)

@@ -4,7 +4,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
-
 LIBRO_SELECTION = [
     ("rce", "RCE (Compras)"),
     ("rvie", "RVIE (Ventas e Ingresos)"),
@@ -93,8 +92,11 @@ class L10nPeSirePeriod(models.Model):
     display_name = fields.Char(compute="_compute_display_name", store=True)
 
     _sql_constraints = [
-        ("period_unique", "UNIQUE(company_id, periodo, libro)",
-         "Ya existe un registro SIRE para ese período + libro en esta empresa."),
+        (
+            "period_unique",
+            "UNIQUE(company_id, periodo, libro)",
+            "Ya existe un registro SIRE para ese período + libro en esta empresa.",
+        ),
     ]
 
     @api.depends("periodo", "libro", "company_id")
@@ -133,18 +135,22 @@ class L10nPeSirePeriod(models.Model):
             else:
                 ticket = client.request_rvie_propuesta(self.periodo)
         except Exception as exc:
-            self.write({
-                "state": "error",
-                "error_message": str(exc),
-                "ticket_requested_at": fields.Datetime.now(),
-            })
+            self.write(
+                {
+                    "state": "error",
+                    "error_message": str(exc),
+                    "ticket_requested_at": fields.Datetime.now(),
+                }
+            )
             raise
-        self.write({
-            "ticket": ticket,
-            "ticket_requested_at": fields.Datetime.now(),
-            "state": "requested",
-            "error_message": False,
-        })
+        self.write(
+            {
+                "ticket": ticket,
+                "ticket_requested_at": fields.Datetime.now(),
+                "state": "requested",
+                "error_message": False,
+            }
+        )
 
     def action_check_ticket(self):
         """Polling: GET status del ticket. Pasa a 'ready' si TERMINADO."""
@@ -183,10 +189,13 @@ class L10nPeSirePeriod(models.Model):
         if not self.file_url:
             return
         import base64
+
         client = self.company_id._get_l10n_pe_sire_rest_client()
         content = client.download_file(self.file_url)
-        self.write({
-            "file_data": base64.b64encode(content),
-            "downloaded_at": fields.Datetime.now(),
-            "state": "downloaded",
-        })
+        self.write(
+            {
+                "file_data": base64.b64encode(content),
+                "downloaded_at": fields.Datetime.now(),
+                "state": "downloaded",
+            }
+        )

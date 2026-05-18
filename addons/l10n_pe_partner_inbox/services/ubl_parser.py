@@ -27,16 +27,15 @@ UBL 2.1 estructura típica:
     </cac:LegalMonetaryTotal>
   </Invoice>
 """
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from typing import Optional
 
 from lxml import etree
-
 from odoo import _
 from odoo.exceptions import UserError
 
@@ -61,6 +60,7 @@ class UblParseError(UserError):
 @dataclass
 class UblInvoiceLine:
     """Línea de factura UBL parseada."""
+
     description: str = ""
     quantity: Decimal = Decimal("0")
     unit_code: str = "NIU"
@@ -75,9 +75,10 @@ class UblInvoice:
     Soporta los 3 tipos principales: Factura (01), Boleta (03),
     Nota de Crédito (07), Nota de Débito (08).
     """
-    document_number: str = ""             # e.g. "F001-00000123"
-    document_type_code: str = ""          # SUNAT catálogo 01
-    issue_date: Optional[date] = None
+
+    document_number: str = ""  # e.g. "F001-00000123"
+    document_type_code: str = ""  # SUNAT catálogo 01
+    issue_date: date | None = None
     currency: str = "PEN"
     supplier_ruc: str = ""
     supplier_name: str = ""
@@ -135,9 +136,7 @@ def _parse_root(root) -> UblInvoice:
     )
 
     # Totales
-    invoice.payable_amount = _decimal(
-        root, "./cac:LegalMonetaryTotal/cbc:PayableAmount"
-    )
+    invoice.payable_amount = _decimal(root, "./cac:LegalMonetaryTotal/cbc:PayableAmount")
     invoice.line_extension_amount = _decimal(
         root, "./cac:LegalMonetaryTotal/cbc:LineExtensionAmount"
     )
@@ -174,6 +173,7 @@ def _parse_line(line_el) -> UblInvoiceLine:
 
 # ─── Helpers ────────────────────────────────────────────────────────
 
+
 def _text(parent, xpath: str) -> str:
     """Devuelve el text del primer match o string vacío."""
     els = parent.xpath(xpath, namespaces=UBL_NAMESPACES)
@@ -193,7 +193,7 @@ def _decimal(parent, xpath: str) -> Decimal:
         return Decimal("0")
 
 
-def _parse_date(text: str) -> Optional[date]:
+def _parse_date(text: str) -> date | None:
     if not text:
         return None
     try:

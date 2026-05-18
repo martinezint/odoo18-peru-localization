@@ -3,7 +3,6 @@
 
 from odoo import fields, models
 
-
 REGIMEN_TRIBUTARIO_SELECTION = [
     ("general", "Régimen General"),
     ("mype", "Régimen MYPE Tributario"),
@@ -20,12 +19,12 @@ class ResCompany(models.Model):
         string="Régimen Tributario",
         default="general",
         help="Régimen tributario SUNAT de la empresa. Afecta los tipos de comprobante "
-             "permitidos, las plantillas de impuestos aplicables y los libros "
-             "electrónicos que la empresa debe presentar (PLE/SIRE).",
+        "permitidos, las plantillas de impuestos aplicables y los libros "
+        "electrónicos que la empresa debe presentar (PLE/SIRE).",
     )
     l10n_pe_apisnet_token = fields.Char(
         string="Token apis.net.pe",
         help="Token de autenticación para consultar RUC/DNI online en apis.net.pe. "
-             "Obtenlo gratis en https://apis.net.pe/api-token.",
+        "Obtenlo gratis en https://apis.net.pe/api-token.",
         groups="base.group_system",
     )

@@ -24,6 +24,16 @@ ignore = [
     "E501",     # line-too-long (Odoo allows longer for translatable strings)
     "PLR0913",  # too-many-arguments (Odoo signatures often need many)
     "PLR2004",  # magic-value-comparison
+    "PLC0415",  # import-outside-top-level: Odoo usa lazy imports a propósito
+                # (evitar dependencias en module-load, romper ciclos, etc.)
+    "PLR0912",  # too-many-branches: Odoo controllers/handlers tienden a serlo
+    "PLR0915",  # too-many-statements
+    "PLW1641",  # eq-without-hash (dataclasses sin __hash__ son válidas)
+    "B904",     # raise-without-from-inside-except: a veces preferimos sin contexto
+    "RUF001",   # ambiguous-unicode (acentos en mensajes en español)
+    "RUF002",   # idem docstrings
+    "RUF003",   # idem comments
+    "RUF012",   # mutable-class-default: Odoo Selection en class body es estándar
 ]
 
 [tool.ruff.lint.per-file-ignores]

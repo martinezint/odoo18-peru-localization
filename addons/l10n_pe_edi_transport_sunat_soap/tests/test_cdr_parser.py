@@ -5,8 +5,7 @@ from odoo.tests.common import TransactionCase, tagged
 
 from ..services.cdr_parser import CdrParseError, parse_cdr
 
-
-CDR_ACCEPTED = """<?xml version="1.0" encoding="UTF-8"?>
+CDR_ACCEPTED = b"""<?xml version="1.0" encoding="UTF-8"?>
 <ar:ApplicationResponse
     xmlns:ar="urn:oasis:names:specification:ubl:schema:xsd:ApplicationResponse-2"
     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -23,9 +22,9 @@ CDR_ACCEPTED = """<?xml version="1.0" encoding="UTF-8"?>
     </cac:DocumentReference>
   </cac:DocumentResponse>
 </ar:ApplicationResponse>
-""".encode("utf-8")
+"""
 
-CDR_OBSERVED = """<?xml version="1.0" encoding="UTF-8"?>
+CDR_OBSERVED = b"""<?xml version="1.0" encoding="UTF-8"?>
 <ar:ApplicationResponse
     xmlns:ar="urn:oasis:names:specification:ubl:schema:xsd:ApplicationResponse-2"
     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -43,9 +42,9 @@ CDR_OBSERVED = """<?xml version="1.0" encoding="UTF-8"?>
   <cbc:Note>El total de operaciones exoneradas no coincide</cbc:Note>
   <cbc:Note>Calculo del importe verificado</cbc:Note>
 </ar:ApplicationResponse>
-""".encode("utf-8")
+"""
 
-CDR_REJECTED = """<?xml version="1.0" encoding="UTF-8"?>
+CDR_REJECTED = b"""<?xml version="1.0" encoding="UTF-8"?>
 <ar:ApplicationResponse
     xmlns:ar="urn:oasis:names:specification:ubl:schema:xsd:ApplicationResponse-2"
     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -61,12 +60,11 @@ CDR_REJECTED = """<?xml version="1.0" encoding="UTF-8"?>
     </cac:DocumentReference>
   </cac:DocumentResponse>
 </ar:ApplicationResponse>
-""".encode("utf-8")
+"""
 
 
 @tagged("post_install", "-at_install", "l10n_pe_edi_transport_sunat_soap")
 class TestCdrParser(TransactionCase):
-
     # ─── Errores ─────────────────────────────────────────────────
 
     def test_empty_raises(self):
@@ -131,16 +129,17 @@ class TestCdrParser(TransactionCase):
 
     def test_code_range_classification(self):
         from ..services.cdr_parser import CdrResponse
+
         cases = [
             ("0", "accepted"),
-            ("99", "neither"),       # < 100, no es nada conocido
+            ("99", "neither"),  # < 100, no es nada conocido
             ("100", "rejected"),
             ("1999", "rejected"),
             ("2000", "observed"),
             ("3999", "observed"),
             ("4000", "error"),
             ("5000", "error"),
-            ("abc", "neither"),      # no numérico
+            ("abc", "neither"),  # no numérico
         ]
         for code, expected in cases:
             cdr = CdrResponse(response_code=code)

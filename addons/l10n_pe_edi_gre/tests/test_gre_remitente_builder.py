@@ -5,7 +5,6 @@ from datetime import date, time
 from decimal import Decimal
 
 from lxml import etree
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.gre_remitente_ubl_builder import (
@@ -48,19 +47,20 @@ def _make_minimal_gre(line_count=1):
         delivery=Address(ubigeo="150101", street="AV. DESTINO 200"),
     )
     for i in range(1, line_count + 1):
-        g.lines.append(DespatchLine(
-            line_id=i,
-            description=f"Producto {i}",
-            quantity=Decimal("2.000"),
-            unit_code="NIU",
-            item_code=f"SKU-{i}",
-        ))
+        g.lines.append(
+            DespatchLine(
+                line_id=i,
+                description=f"Producto {i}",
+                quantity=Decimal("2.000"),
+                unit_code="NIU",
+                item_code=f"SKU-{i}",
+            )
+        )
     return g
 
 
 @tagged("post_install", "-at_install", "l10n_pe_edi_gre")
 class TestGreRemitenteUblBuilder(TransactionCase):
-
     def setUp(self):
         super().setUp()
         self.builder = GreRemitenteUblBuilder()
@@ -80,8 +80,7 @@ class TestGreRemitenteUblBuilder(TransactionCase):
         self.assertEqual(nsmap.get("ext"), NS_EXT)
 
     def test_placeholder_for_signature(self):
-        path = (f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension"
-                f"/{{{NS_EXT}}}ExtensionContent")
+        path = f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension/{{{NS_EXT}}}ExtensionContent"
         self.assertIsNotNone(self.root.find(path))
 
     def test_header_versions_and_id(self):
@@ -129,33 +128,26 @@ class TestGreRemitenteUblBuilder(TransactionCase):
         )
 
     def test_shipment_handling_code_motivo(self):
-        el = self.root.find(
-            f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}HandlingCode"
-        )
+        el = self.root.find(f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}HandlingCode")
         self.assertEqual(el.text, "01")
         self.assertIn("catalogo20", el.get("listURI"))
 
     def test_shipment_gross_weight(self):
-        el = self.root.find(
-            f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}GrossWeightMeasure"
-        )
+        el = self.root.find(f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}GrossWeightMeasure")
         self.assertEqual(el.text, "100.500")
         self.assertEqual(el.get("unitCode"), "KGM")
 
     def test_shipment_total_packages(self):
         self.assertEqual(
             self.root.findtext(
-                f"{{{NS_CAC}}}Shipment"
-                f"/{{{NS_CBC}}}TotalTransportHandlingUnitQuantity"
+                f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}TotalTransportHandlingUnitQuantity"
             ),
             "2",
         )
 
     def test_split_consignment_false_by_default(self):
         self.assertEqual(
-            self.root.findtext(
-                f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}SplitConsignmentIndicator"
-            ),
+            self.root.findtext(f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}SplitConsignmentIndicator"),
             "false",
         )
 
@@ -163,8 +155,7 @@ class TestGreRemitenteUblBuilder(TransactionCase):
 
     def test_transport_mode_in_stage(self):
         el = self.root.find(
-            f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}ShipmentStage"
-            f"/{{{NS_CBC}}}TransportModeCode"
+            f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}ShipmentStage/{{{NS_CBC}}}TransportModeCode"
         )
         self.assertEqual(el.text, "02")  # privado
         self.assertIn("catalogo18", el.get("listURI"))
@@ -197,15 +188,12 @@ class TestGreRemitenteUblBuilder(TransactionCase):
 
     def test_delivery_ubigeo(self):
         ub = self.root.findtext(
-            f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}Delivery"
-            f"/{{{NS_CAC}}}DeliveryAddress/{{{NS_CBC}}}ID"
+            f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}Delivery/{{{NS_CAC}}}DeliveryAddress/{{{NS_CBC}}}ID"
         )
         self.assertEqual(ub, "150101")
 
     def test_origin_ubigeo(self):
-        ub = self.root.findtext(
-            f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}OriginAddress/{{{NS_CBC}}}ID"
-        )
+        ub = self.root.findtext(f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}OriginAddress/{{{NS_CBC}}}ID")
         self.assertEqual(ub, "150122")
 
     # ─── DespatchLine ────────────────────────────────────────────
@@ -215,9 +203,7 @@ class TestGreRemitenteUblBuilder(TransactionCase):
         self.assertEqual(len(lines), 2)
 
     def test_line_quantity_with_unit(self):
-        qty_el = self.root.find(
-            f"{{{NS_CAC}}}DespatchLine/{{{NS_CBC}}}DeliveredQuantity"
-        )
+        qty_el = self.root.find(f"{{{NS_CAC}}}DespatchLine/{{{NS_CBC}}}DeliveredQuantity")
         self.assertEqual(qty_el.text, "2.000")
         self.assertEqual(qty_el.get("unitCode"), "NIU")
 
@@ -260,9 +246,7 @@ class TestGreOptionalSections(TransactionCase):
         gre = _make_minimal_gre()
         gre.origin = Address()
         root = self.builder.build(gre)
-        self.assertIsNone(
-            root.find(f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}OriginAddress")
-        )
+        self.assertIsNone(root.find(f"{{{NS_CAC}}}Shipment/{{{NS_CAC}}}OriginAddress"))
 
     def test_no_seller_item_id_when_no_code(self):
         gre = _make_minimal_gre()
@@ -270,8 +254,7 @@ class TestGreOptionalSections(TransactionCase):
         root = self.builder.build(gre)
         self.assertIsNone(
             root.find(
-                f"{{{NS_CAC}}}DespatchLine/{{{NS_CAC}}}Item"
-                f"/{{{NS_CAC}}}SellersItemIdentification"
+                f"{{{NS_CAC}}}DespatchLine/{{{NS_CAC}}}Item/{{{NS_CAC}}}SellersItemIdentification"
             )
         )
 
@@ -279,6 +262,4 @@ class TestGreOptionalSections(TransactionCase):
         gre = _make_minimal_gre()
         gre.motivo_descripcion = ""
         root = self.builder.build(gre)
-        self.assertIsNone(
-            root.find(f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}Information")
-        )
+        self.assertIsNone(root.find(f"{{{NS_CAC}}}Shipment/{{{NS_CBC}}}Information"))

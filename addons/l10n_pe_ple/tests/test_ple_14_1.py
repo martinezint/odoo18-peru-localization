@@ -98,40 +98,52 @@ class TestPle14_1Generator(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test PLE Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test PLE Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "CLIENTE PLE SAC",
-            "country_id": cls.pe.id,
-            "vat": "20100047218",
-            "l10n_latam_identification_type_id": cls.env.ref("l10n_pe.it_RUC").id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "CLIENTE PLE SAC",
+                "country_id": cls.pe.id,
+                "vat": "20100047218",
+                "l10n_latam_identification_type_id": cls.env.ref("l10n_pe.it_RUC").id,
+            }
+        )
 
     def _create_posted_move(self, day: int, amount: float, move_type="out_invoice"):
         """Crea + fuerza state=posted vía SQL para bypasear validación l10n_latam
         (número de documento), que NO es responsabilidad del módulo PLE."""
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": move_type,
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 4, day),
-            "date": date(2026, 4, day),
-            "invoice_line_ids": [(0, 0, {
-                "name": "Test",
-                "quantity": 1,
-                "price_unit": amount,
-                "tax_ids": [],
-            })],
-        })
-        self.env.cr.execute(
-            "UPDATE account_move SET state='posted' WHERE id=%s", (move.id,)
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": move_type,
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 4, day),
+                    "date": date(2026, 4, day),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Test",
+                                "quantity": 1,
+                                "price_unit": amount,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
         )
+        self.env.cr.execute("UPDATE account_move SET state='posted' WHERE id=%s", (move.id,))
         move.invalidate_recordset()
         return move
 
@@ -142,26 +154,38 @@ class TestPle14_1Generator(TransactionCase):
         lines = list(gen.iter_lines())
         # solo nuestras 2 moves (otras BD pueden tener otras del setUp de otros tests)
         # → filtramos por correlativo M<id>
-        our = [l for l in lines if f"M{m1.id:08d}" in l or f"M{m2.id:08d}" in l]
+        our = [ln for ln in lines if f"M{m1.id:08d}" in ln or f"M{m2.id:08d}" in ln]
         self.assertEqual(len(our), 2)
 
     def test_generator_skips_other_periods(self):
         self._create_posted_move(10, 100.0)
         # Move en mayo, no debe aparecer en período 202604
-        m_mayo = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 5, 1),
-            "date": date(2026, 5, 1),
-            "invoice_line_ids": [(0, 0, {
-                "name": "Mayo", "quantity": 1, "price_unit": 50.0,
-                "tax_ids": [],
-            })],
-        })
-        self.env.cr.execute(
-            "UPDATE account_move SET state='posted' WHERE id=%s", (m_mayo.id,)
+        m_mayo = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 5, 1),
+                    "date": date(2026, 5, 1),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Mayo",
+                                "quantity": 1,
+                                "price_unit": 50.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
         )
+        self.env.cr.execute("UPDATE account_move SET state='posted' WHERE id=%s", (m_mayo.id,))
         m_mayo.invalidate_recordset()
         lines = list(Ple14_1Generator(self.env, self.company, "202604").iter_lines())
         self.assertNotIn(f"M{m_mayo.id:08d}", "\n".join(lines))
@@ -176,26 +200,38 @@ class TestPle14_1Generator(TransactionCase):
         # SUNAT acepta CRLF
         self.assertIn("\r\n", content)
         # Cada línea termina con '|'
-        non_empty = [l for l in content.split("\r\n") if l]
-        for line in non_empty:
-            self.assertTrue(line.endswith("|"), f"línea no termina con |: {line[:80]}")
+        non_empty = [ln for ln in content.split("\r\n") if ln]
+        for ln in non_empty:
+            self.assertTrue(ln.endswith("|"), f"línea no termina con |: {ln[:80]}")
 
     def test_in_invoice_not_included(self):
         """Compras no deben aparecer en el registro de Ventas."""
-        bill = self.env["account.move"].with_company(self.company).create({
-            "move_type": "in_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 4, 10),
-            "date": date(2026, 4, 10),
-            "invoice_line_ids": [(0, 0, {
-                "name": "Compra", "quantity": 1, "price_unit": 100.0,
-                "tax_ids": [],
-            })],
-        })
-        self.env.cr.execute(
-            "UPDATE account_move SET state='posted' WHERE id=%s", (bill.id,)
+        bill = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "in_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 4, 10),
+                    "date": date(2026, 4, 10),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Compra",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
         )
+        self.env.cr.execute("UPDATE account_move SET state='posted' WHERE id=%s", (bill.id,))
         bill.invalidate_recordset()
         lines = list(Ple14_1Generator(self.env, self.company, "202604").iter_lines())
         self.assertNotIn(f"M{bill.id:08d}", "\n".join(lines))

@@ -4,7 +4,6 @@
 from unittest.mock import MagicMock, patch
 
 import requests
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.apisnet import ApisNetClient, ApisNetError

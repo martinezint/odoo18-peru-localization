@@ -61,7 +61,8 @@ class TestSendSummary(TransactionCase):
 
         with self._patched_client(fake_client):
             ticket = client.send_summary(
-                "20131312955-RC-20260518-001.zip", b"zip-bytes",
+                "20131312955-RC-20260518-001.zip",
+                b"zip-bytes",
             )
         self.assertEqual(ticket, "1234567890")
         # Verifica que llamó sendSummary con los args correctos
@@ -84,11 +85,10 @@ class TestSendSummary(TransactionCase):
 
     def test_send_summary_fault_raises(self):
         from zeep.exceptions import Fault
+
         client = self._new_client()
         fake_service = MagicMock()
-        fake_service.sendSummary.side_effect = Fault(
-            "0104: Clave incorrecta", code="0104"
-        )
+        fake_service.sendSummary.side_effect = Fault("0104: Clave incorrecta", code="0104")
         fake_client = MagicMock()
         fake_client.service = fake_service
 
@@ -99,6 +99,7 @@ class TestSendSummary(TransactionCase):
 
     def test_send_summary_transport_error_raises(self):
         from zeep.exceptions import TransportError
+
         client = self._new_client()
         fake_service = MagicMock()
         fake_service.sendSummary.side_effect = TransportError("Connection refused")
@@ -151,7 +152,8 @@ class TestGetStatusAsync(TransactionCase):
         cdr_zip = _mk_cdr_zip("20131312955-RC-20260518-001.xml", CDR_RC_ACCEPTED)
         fake_service = MagicMock()
         fake_service.getStatus.return_value = self._make_zeep_status_response(
-            "0", content=cdr_zip,
+            "0",
+            content=cdr_zip,
         )
         fake_client = MagicMock()
         fake_client.service = fake_service
@@ -175,6 +177,7 @@ class TestGetStatusAsync(TransactionCase):
 
     def test_status_fault_raises(self):
         from zeep.exceptions import Fault
+
         client = self._new_client()
         fake_service = MagicMock()
         fake_service.getStatus.side_effect = Fault("invalid ticket", code="0114")

@@ -3,7 +3,7 @@
 {
     "name": "Peru - Base extras (RUC, catálogos SUNAT, régimen tributario)",
     "summary": "Validación RUC/DNI/CE, régimen tributario en res.company, "
-               "consulta RUC/DNI online vía apis.net.pe",
+    "consulta RUC/DNI online vía apis.net.pe",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

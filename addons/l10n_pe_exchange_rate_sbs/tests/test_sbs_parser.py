@@ -7,7 +7,6 @@ from odoo.tests.common import TransactionCase, tagged
 
 from ..services.sbs import SbsScraper, sbs_name_to_iso
 
-
 # Fixture: HTML simulado de la página SBS con la tabla de tipos de cambio
 SBS_SAMPLE_HTML = """
 <html>

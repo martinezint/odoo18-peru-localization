@@ -47,14 +47,13 @@ ambos en PLE 5.x; usamos UTF-8.
 Salida: generador (yield string por línea). El caller decide si va a archivo
 en disco (streaming) o a BytesIO en memoria.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import Optional
-
 
 PLE_VENTAS_COLUMNS = 46  # número total de columnas en la línea
 
@@ -65,16 +64,17 @@ class Ple14_1Line:
 
     No todos los campos son requeridos. Los Decimal por defecto = 0.00.
     """
-    period: str                         # 'YYYYMM00'
-    cuo: int                            # secuencial 1, 2, 3...
-    correlativo: str                    # 'M' + serie + número, ej. 'MF001-1'
+
+    period: str  # 'YYYYMM00'
+    cuo: int  # secuencial 1, 2, 3...
+    correlativo: str  # 'M' + serie + número, ej. 'MF001-1'
     issue_date: date
-    due_date: Optional[date] = None
-    doc_type: str = "01"                # cat 10
+    due_date: date | None = None
+    doc_type: str = "01"  # cat 10
     serie: str = ""
-    issue_year: str = ""                # solo para ticket máquina
-    number: str = ""                    # número del comprobante (sin serie)
-    customer_id_type: str = "6"         # cat 6
+    issue_year: str = ""  # solo para ticket máquina
+    number: str = ""  # número del comprobante (sin serie)
+    customer_id_type: str = "6"  # cat 6
     customer_id: str = ""
     customer_name: str = ""
     export_value: Decimal = Decimal("0.00")
@@ -89,14 +89,14 @@ class Ple14_1Line:
     total: Decimal = Decimal("0.00")
     currency: str = "PEN"
     exchange_rate: Decimal = Decimal("1.000")
-    ref_issue_date: Optional[date] = None
+    ref_issue_date: date | None = None
     ref_doc_type: str = ""
     ref_serie: str = ""
     ref_issue_year: str = ""
     ref_number: str = ""
     ident_bien_servicio: str = ""
     erroneous_ref: str = ""
-    state: str = "1"                    # 1 inicial, 8 incluido tarde, 9 anulado
+    state: str = "1"  # 1 inicial, 8 incluido tarde, 9 anulado
 
 
 def render_line(line: Ple14_1Line) -> str:
@@ -200,8 +200,10 @@ class Ple14_1Generator:
         doc_type = self._infer_doc_type(move)
         # Customer id type: del l10n_latam_identification_type_id.l10n_pe_vat_code
         cust_id_type = "6"
-        if partner.l10n_latam_identification_type_id and \
-                partner.l10n_latam_identification_type_id.l10n_pe_vat_code:
+        if (
+            partner.l10n_latam_identification_type_id
+            and partner.l10n_latam_identification_type_id.l10n_pe_vat_code
+        ):
             cust_id_type = partner.l10n_latam_identification_type_id.l10n_pe_vat_code
 
         # Importes — extraemos lo más limpio posible del move
@@ -258,7 +260,7 @@ def _fmt_amt(value, decimals: int = 2) -> str:
     return f"{value:.{decimals}f}"
 
 
-def _fmt_date(d: Optional[date]) -> str:
+def _fmt_date(d: date | None) -> str:
     """SUNAT exige DD/MM/YYYY."""
     if not d:
         return ""

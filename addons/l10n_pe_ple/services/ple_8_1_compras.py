@@ -7,16 +7,15 @@ retenciones, sustento, etc. Total ~52 columnas en v5.x.
 
 v1 implementa los campos más usados; deja en vacío los condicionales.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import Optional
 
 from .ple_14_1_ventas import _clean_text, _fmt_amt, _fmt_date
-
 
 PLE_COMPRAS_COLUMNS = 52
 
@@ -24,16 +23,17 @@ PLE_COMPRAS_COLUMNS = 52
 @dataclass
 class Ple8_1Line:
     """Línea Registro de Compras 8.1."""
+
     period: str
     cuo: int
     correlativo: str
     issue_date: date
-    due_date: Optional[date] = None     # fecha vencimiento O fecha pago retención
+    due_date: date | None = None  # fecha vencimiento O fecha pago retención
     doc_type: str = "01"
     serie: str = ""
     issue_year: str = ""
-    initial_number: str = ""            # rango: número desde
-    final_number: str = ""              # rango: número hasta
+    initial_number: str = ""  # rango: número desde
+    final_number: str = ""  # rango: número hasta
     supplier_id_type: str = "6"
     supplier_id: str = ""
     supplier_name: str = ""
@@ -42,7 +42,7 @@ class Ple8_1Line:
     igv_other_uses: Decimal = Decimal("0.00")
     taxed_base_export: Decimal = Decimal("0.00")
     igv_export: Decimal = Decimal("0.00")
-    taxed_base_no_export: Decimal = Decimal("0.00")    # común
+    taxed_base_no_export: Decimal = Decimal("0.00")  # común
     igv_no_export: Decimal = Decimal("0.00")
     taxed_base_no_credit: Decimal = Decimal("0.00")
     igv_no_credit: Decimal = Decimal("0.00")
@@ -55,17 +55,17 @@ class Ple8_1Line:
     currency: str = "PEN"
     exchange_rate: Decimal = Decimal("1.000")
 
-    ref_issue_date: Optional[date] = None
+    ref_issue_date: date | None = None
     ref_doc_type: str = ""
     ref_serie: str = ""
     ref_number: str = ""
 
-    detraccion_date: Optional[date] = None
+    detraccion_date: date | None = None
     detraccion_number: str = ""
 
-    foreign_doc_type: str = ""          # solo para no domiciliados
+    foreign_doc_type: str = ""  # solo para no domiciliados
     foreign_doc_number: str = ""
-    foreign_doc_date: Optional[date] = None
+    foreign_doc_date: date | None = None
 
     state: str = "1"
 
@@ -131,8 +131,7 @@ class Ple8_1Generator:
         year = int(self.period_yyyymm[:4])
         month = int(self.period_yyyymm[4:])
         date_from = date(year, month, 1)
-        date_to = date(year + (1 if month == 12 else 0),
-                       1 if month == 12 else month + 1, 1)
+        date_to = date(year + (1 if month == 12 else 0), 1 if month == 12 else month + 1, 1)
 
         domain = [
             ("company_id", "=", self.company.id),
@@ -158,8 +157,10 @@ class Ple8_1Generator:
 
         doc_type = "07" if move.move_type == "in_refund" else "01"
         sup_id_type = "6"
-        if supplier.l10n_latam_identification_type_id and \
-                supplier.l10n_latam_identification_type_id.l10n_pe_vat_code:
+        if (
+            supplier.l10n_latam_identification_type_id
+            and supplier.l10n_latam_identification_type_id.l10n_pe_vat_code
+        ):
             sup_id_type = supplier.l10n_latam_identification_type_id.l10n_pe_vat_code
 
         total = Decimal(str(move.amount_total or 0))

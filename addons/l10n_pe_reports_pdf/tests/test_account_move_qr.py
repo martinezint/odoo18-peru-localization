@@ -6,60 +6,74 @@ from datetime import date
 
 from odoo.tests.common import TransactionCase, tagged
 
-
-SIGNED_XML_SAMPLE = """<?xml version="1.0"?>
+SIGNED_XML_SAMPLE = b"""<?xml version="1.0"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <ds:Signature>
     <ds:SignatureValue>MOCK_SIG_VALUE_BASE64==</ds:SignatureValue>
   </ds:Signature>
 </Invoice>
-""".encode("utf-8")
+"""
 
 
 @tagged("post_install", "-at_install", "l10n_pe_reports_pdf")
 class TestAccountMoveQr(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "QR Test Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "QR Test Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "CLIENTE QR",
-            "country_id": cls.pe.id,
-            "vat": "20100047218",
-            "l10n_latam_identification_type_id": cls.env.ref("l10n_pe.it_RUC").id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "CLIENTE QR",
+                "country_id": cls.pe.id,
+                "vat": "20100047218",
+                "l10n_latam_identification_type_id": cls.env.ref("l10n_pe.it_RUC").id,
+            }
+        )
 
     def _create_move_with_edi(self, *, with_signed_xml=True, move_type="out_invoice"):
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": move_type,
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 5, 18),
-            "date": date(2026, 5, 18),
-            "name": "F001/00000123",
-            "invoice_line_ids": [(0, 0, {
-                "name": "Servicio",
-                "quantity": 1,
-                "price_unit": 100.0,
-                "tax_ids": [],
-            })],
-        })
-        doc = self.env["l10n.pe.edi.document"].create({
-            "move_id": move.id,
-            "name": "20131312955-01-F001-123.xml",
-            "xml_signed": base64.b64encode(SIGNED_XML_SAMPLE) if with_signed_xml else False,
-            "state": "signed" if with_signed_xml else "draft",
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": move_type,
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 5, 18),
+                    "date": date(2026, 5, 18),
+                    "name": "F001/00000123",
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Servicio",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        doc = self.env["l10n.pe.edi.document"].create(
+            {
+                "move_id": move.id,
+                "name": "20131312955-01-F001-123.xml",
+                "xml_signed": base64.b64encode(SIGNED_XML_SAMPLE) if with_signed_xml else False,
+                "state": "signed" if with_signed_xml else "draft",
+            }
+        )
         move.l10n_pe_edi_document_id = doc.id
         return move
 
@@ -103,15 +117,30 @@ class TestAccountMoveQr(TransactionCase):
         self.assertEqual(cols[9], "MOCK_SIG_VALUE_BASE64==")
 
     def test_qr_data_empty_when_no_edi_document(self):
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 5, 18),
-            "invoice_line_ids": [(0, 0, {
-                "name": "X", "quantity": 1, "price_unit": 100.0, "tax_ids": [],
-            })],
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 5, 18),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "X",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
         self.assertEqual(move._l10n_pe_edi_qr_data(), "")
 
     # ─── QR PNG base64 ───────────────────────────────────────────
@@ -124,15 +153,30 @@ class TestAccountMoveQr(TransactionCase):
         self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
 
     def test_qr_png_empty_when_no_edi_document(self):
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 5, 18),
-            "invoice_line_ids": [(0, 0, {
-                "name": "X", "quantity": 1, "price_unit": 100.0, "tax_ids": [],
-            })],
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 5, 18),
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "X",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
         self.assertEqual(move._l10n_pe_edi_qr_png_base64(), "")
 
     def test_qr_amounts_match_move(self):

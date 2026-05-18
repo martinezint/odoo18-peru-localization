@@ -3,7 +3,6 @@
 
 import base64
 import logging
-from datetime import date
 from decimal import Decimal
 
 from odoo import _, fields, models
@@ -49,15 +48,15 @@ class L10nPeRcWizard(models.TransientModel):
         string="Firmar XML",
         default=True,
         help="Si está activo, se firma con el cert XAdES de la empresa. "
-             "Desactiva para previsualizar el XML sin firma.",
+        "Desactiva para previsualizar el XML sin firma.",
     )
     send_to_sunat = fields.Boolean(
         string="Enviar a SUNAT inmediatamente",
         default=True,
         help="Si está activo, tras firmar el XML se llama sendSummary "
-             "automáticamente y se guarda el ticket en el documento EDI. "
-             "Requiere XML firmado (sign_xml=True) y credenciales SOL "
-             "configuradas en la empresa.",
+        "automáticamente y se guarda el ticket en el documento EDI. "
+        "Requiere XML firmado (sign_xml=True) y credenciales SOL "
+        "configuradas en la empresa.",
     )
 
     boletas_count = fields.Integer(readonly=True)
@@ -76,9 +75,10 @@ class L10nPeRcWizard(models.TransientModel):
             raise UserError(_("La empresa %s no tiene RUC configurado.") % self.company_id.name)
         boletas = self._search_boletas()
         if not boletas:
-            raise UserError(_(
-                "No hay boletas posteadas el %s en %s. Nada que resumir."
-            ) % (self.reference_date, self.company_id.name))
+            raise UserError(
+                _("No hay boletas posteadas el %s en %s. Nada que resumir.")
+                % (self.reference_date, self.company_id.name)
+            )
 
         summary = self._build_summary(boletas)
         builder = RcSummaryBuilder()
@@ -89,9 +89,8 @@ class L10nPeRcWizard(models.TransientModel):
             signer.sign(root, signature_id="SignatureSP")
 
         from lxml import etree
-        xml_bytes = etree.tostring(
-            root, xml_declaration=True, encoding="UTF-8", standalone=False
-        )
+
+        xml_bytes = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=False)
 
         filename = self._build_filename()
         # Creamos un l10n.pe.edi.document sin move_id (RC es agregado, no ligado
@@ -102,27 +101,31 @@ class L10nPeRcWizard(models.TransientModel):
         if boletas:
             Doc = self.env["l10n.pe.edi.document"]
             ref_move = boletas[0]
-            doc = Doc.create({
-                "move_id": ref_move.id,
-                "name": filename,
-                "xml_signed": base64.b64encode(xml_bytes) if self.sign_xml else False,
-                "xml_unsigned": False if self.sign_xml else base64.b64encode(xml_bytes),
-                "state": "signed" if self.sign_xml else "draft",
-                "last_action_at": fields.Datetime.now(),
-            })
+            doc = Doc.create(
+                {
+                    "move_id": ref_move.id,
+                    "name": filename,
+                    "xml_signed": base64.b64encode(xml_bytes) if self.sign_xml else False,
+                    "xml_unsigned": False if self.sign_xml else base64.b64encode(xml_bytes),
+                    "state": "signed" if self.sign_xml else "draft",
+                    "last_action_at": fields.Datetime.now(),
+                }
+            )
 
-        self.write({
-            "boletas_count": len(boletas),
-            "edi_document_id": doc.id if doc else False,
-            "xml_data": base64.b64encode(xml_bytes),
-            "xml_filename": filename,
-        })
+        self.write(
+            {
+                "boletas_count": len(boletas),
+                "edi_document_id": doc.id if doc else False,
+                "xml_data": base64.b64encode(xml_bytes),
+                "xml_filename": filename,
+            }
+        )
 
         # Auto-send a SUNAT si está activo + firmado + hay doc EDI persistente
         if self.send_to_sunat and self.sign_xml and doc:
             try:
                 doc.action_l10n_pe_send_summary()
-            except Exception as exc:
+            except Exception:
                 _logger.exception("Auto-send a SUNAT falló para %s", doc.name)
                 # No re-raise: queremos que el wizard cierre con el XML disponible.
                 # El error queda en doc.error_message.
@@ -146,12 +149,15 @@ class L10nPeRcWizard(models.TransientModel):
         Cuando l10n_pe_edi integre correctamente l10n_latam_document_type,
         filtraremos también por código '03'.
         """
-        return self.env["account.move"].search([
-            ("company_id", "=", self.company_id.id),
-            ("move_type", "=", "out_invoice"),
-            ("state", "=", "posted"),
-            ("invoice_date", "=", self.reference_date),
-        ], order="name, id")
+        return self.env["account.move"].search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("move_type", "=", "out_invoice"),
+                ("state", "=", "posted"),
+                ("invoice_date", "=", self.reference_date),
+            ],
+            order="name, id",
+        )
 
     def _build_summary(self, boletas) -> RcSummary:
         co = self.company_id
@@ -168,17 +174,19 @@ class L10nPeRcWizard(models.TransientModel):
         )
         for i, move in enumerate(boletas, start=1):
             serie, number = self._split_move_name(move.name or "")
-            summary.lines.append(RcLine(
-                line_id=i,
-                document_type_code="03",
-                serie=serie or "B001",
-                start_number=number or "0",
-                end_number=number or "0",
-                total_amount=Decimal(str(move.amount_total or 0)),
-                payable_amount=Decimal(str(move.amount_untaxed or 0)),
-                tax_amount=Decimal(str(move.amount_tax or 0)),
-                currency=move.currency_id.name or "PEN",
-            ))
+            summary.lines.append(
+                RcLine(
+                    line_id=i,
+                    document_type_code="03",
+                    serie=serie or "B001",
+                    start_number=number or "0",
+                    end_number=number or "0",
+                    total_amount=Decimal(str(move.amount_total or 0)),
+                    payable_amount=Decimal(str(move.amount_untaxed or 0)),
+                    tax_amount=Decimal(str(move.amount_tax or 0)),
+                    currency=move.currency_id.name or "PEN",
+                )
+            )
         return summary
 
     def _build_filename(self) -> str:

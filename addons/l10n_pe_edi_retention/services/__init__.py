@@ -1,5 +1,4 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-from . import retention_ubl_builder
-from . import perception_ubl_builder
+from . import perception_ubl_builder, retention_ubl_builder

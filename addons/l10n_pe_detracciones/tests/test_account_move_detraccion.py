@@ -16,51 +16,65 @@ class TestAccountMoveDetraccion(TransactionCase):
         cls.pe = cls.env.ref("base.pe")
 
         # Empresa PE con chart 'pe' aplicado (necesario para account.tax)
-        cls.company = cls.env["res.company"].create({
-            "name": "Test Detracciones Co",
-            "country_id": cls.pe.id,
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test Detracciones Co",
+                "country_id": cls.pe.id,
+            }
         )
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
         cls.env.user.company_ids = [(4, cls.company.id)]
         cls.env = cls.env(context={"allowed_company_ids": [cls.company.id]})
         cls.env.user.company_id = cls.company
 
         # Partner proveedor genérico
-        cls.partner = cls.env["res.partner"].create({
-            "name": "Proveedor SAC",
-            "country_id": cls.pe.id,
-        })
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "Proveedor SAC",
+                "country_id": cls.pe.id,
+            }
+        )
 
         # Códigos detracción cargados como data
         cls.det_022 = cls.env.ref("l10n_pe_detracciones.det_022")  # 12% servicios
         cls.det_002 = cls.env.ref("l10n_pe_detracciones.det_002")  # 4% arroz
 
         # Productos
-        cls.product_with_det = cls.env["product.product"].create({
-            "name": "Servicio empresarial",
-            "l10n_pe_detraccion_code_id": cls.det_022.id,
-        })
-        cls.product_no_det = cls.env["product.product"].create({
-            "name": "Producto sin detracción",
-        })
+        cls.product_with_det = cls.env["product.product"].create(
+            {
+                "name": "Servicio empresarial",
+                "l10n_pe_detraccion_code_id": cls.det_022.id,
+            }
+        )
+        cls.product_no_det = cls.env["product.product"].create(
+            {
+                "name": "Producto sin detracción",
+            }
+        )
 
     def _create_bill(self, amount, product=None):
         product = product or self.product_with_det
-        return self.env["account.move"].create({
-            "move_type": "in_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": "2026-05-15",
-            "invoice_line_ids": [(0, 0, {
-                "product_id": product.id,
-                "name": product.name,
-                "quantity": 1,
-                "price_unit": amount,
-                "tax_ids": [],  # sin impuestos para simplificar el cálculo
-            })],
-        })
+        return self.env["account.move"].create(
+            {
+                "move_type": "in_invoice",
+                "partner_id": self.partner.id,
+                "company_id": self.company.id,
+                "invoice_date": "2026-05-15",
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "name": product.name,
+                            "quantity": 1,
+                            "price_unit": amount,
+                            "tax_ids": [],  # sin impuestos para simplificar el cálculo
+                        },
+                    )
+                ],
+            }
+        )
 
     def test_no_detraccion_when_no_product_code(self):
         bill = self._create_bill(1000.0, product=self.product_no_det)
@@ -93,28 +107,38 @@ class TestAccountMoveDetraccion(TransactionCase):
 
     def test_detraccion_uses_first_product_with_code(self):
         """Si la factura tiene productos mixtos, toma el primero con código."""
-        bill = self.env["account.move"].create({
-            "move_type": "in_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": "2026-05-15",
-            "invoice_line_ids": [
-                (0, 0, {
-                    "product_id": self.product_no_det.id,
-                    "name": self.product_no_det.name,
-                    "quantity": 1,
-                    "price_unit": 300.0,
-                    "tax_ids": [],
-                }),
-                (0, 0, {
-                    "product_id": self.product_with_det.id,
-                    "name": self.product_with_det.name,
-                    "quantity": 1,
-                    "price_unit": 800.0,
-                    "tax_ids": [],
-                }),
-            ],
-        })
+        bill = self.env["account.move"].create(
+            {
+                "move_type": "in_invoice",
+                "partner_id": self.partner.id,
+                "company_id": self.company.id,
+                "invoice_date": "2026-05-15",
+                "invoice_line_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product_no_det.id,
+                            "name": self.product_no_det.name,
+                            "quantity": 1,
+                            "price_unit": 300.0,
+                            "tax_ids": [],
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "product_id": self.product_with_det.id,
+                            "name": self.product_with_det.name,
+                            "quantity": 1,
+                            "price_unit": 800.0,
+                            "tax_ids": [],
+                        },
+                    ),
+                ],
+            }
+        )
         self.assertTrue(bill.l10n_pe_detraccion_has_application)
         self.assertEqual(bill.l10n_pe_detraccion_code_id, self.det_022)
         # Total 1100, 12% = 132

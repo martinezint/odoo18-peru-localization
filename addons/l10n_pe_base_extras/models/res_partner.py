@@ -95,8 +95,9 @@ class ResPartner(models.Model):
                 raise UserError(_("DNI %s no encontrado en RENIEC.") % vat)
             self._l10n_pe_fill_from_dni(data)
         else:
-            raise UserError(_("Tipo de documento «%s» no soportado para consulta online.")
-                            % id_type.name)
+            raise UserError(
+                _("Tipo de documento «%s» no soportado para consulta online.") % id_type.name
+            )
 
     def _l10n_pe_fill_from_ruc(self, data):
         """Aplica la respuesta apis.net.pe sobre el partner (idempotente).

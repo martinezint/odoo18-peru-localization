@@ -24,14 +24,14 @@ Flujo:
 
 Doc oficial SUNAT: https://www.gob.pe/institucion/sunat/normas-legales/
 """
+
 from __future__ import annotations
 
 import hashlib
 import logging
 from base64 import b64encode
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -65,11 +65,13 @@ DEFAULT_TIMEOUT = 30
 
 # ─── Excepciones ──────────────────────────────────────────────────────
 
+
 class GreRestError(Exception):
     """Error genérico del cliente GRE REST."""
 
-    def __init__(self, message: str, *, status_code: int | None = None,
-                 sunat_code: str | None = None):
+    def __init__(
+        self, message: str, *, status_code: int | None = None, sunat_code: str | None = None
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.sunat_code = sunat_code
@@ -81,6 +83,7 @@ class GreAuthError(GreRestError):
 
 # ─── Token cache ──────────────────────────────────────────────────────
 
+
 @dataclass
 class TokenCache:
     """Cache simple en memoria de un access_token con expiry.
@@ -88,21 +91,24 @@ class TokenCache:
     Útil cuando se hacen varias llamadas en sucesión (no toca DB). Para cache
     persistente, ver `res.company.l10n_pe_gre_token_*` fields.
     """
+
     token: str = ""
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
     def is_valid(self, safety_window_sec: int = 30) -> bool:
         if not self.token or not self.expires_at:
             return False
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return now + timedelta(seconds=safety_window_sec) < self.expires_at
 
 
 # ─── Status parseado ──────────────────────────────────────────────────
 
+
 @dataclass
 class GreStatus:
     """Resultado de GET /envios/<ticket>."""
+
     cod_respuesta: str = ""
     ind_estado: str = ""
     error: dict = field(default_factory=dict)
@@ -126,6 +132,7 @@ class GreStatus:
 
 
 # ─── Cliente principal ────────────────────────────────────────────────
+
 
 class SunatGreRestClient:
     """Cliente REST para SUNAT GRE 2.0.
@@ -151,7 +158,7 @@ class SunatGreRestClient:
         ruc: str,
         environment: str = "beta",
         timeout: int = DEFAULT_TIMEOUT,
-        token_cache: Optional[TokenCache] = None,
+        token_cache: TokenCache | None = None,
     ):
         if environment not in ENDPOINTS:
             raise ValueError(f"environment debe ser 'beta' o 'production', no {environment!r}")
@@ -202,12 +209,8 @@ class SunatGreRestClient:
             raise GreAuthError("Respuesta SUNAT no contiene access_token")
 
         self._token_cache.token = access_token
-        self._token_cache.expires_at = (
-            datetime.now(timezone.utc) + timedelta(seconds=expires_in)
-        )
-        _logger.info(
-            "GRE: token obtenido, expira en %s s.", expires_in
-        )
+        self._token_cache.expires_at = datetime.now(UTC) + timedelta(seconds=expires_in)
+        _logger.info("GRE: token obtenido, expira en %s s.", expires_in)
         return access_token
 
     # ─── Submission ──────────────────────────────────────────────

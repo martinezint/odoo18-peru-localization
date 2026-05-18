@@ -40,8 +40,10 @@ class AccountMove(models.Model):
         # Tipo doc del cliente (cat 06)
         partner = self.partner_id
         cust_type = "0"
-        if partner.l10n_latam_identification_type_id and \
-                partner.l10n_latam_identification_type_id.l10n_pe_vat_code:
+        if (
+            partner.l10n_latam_identification_type_id
+            and partner.l10n_latam_identification_type_id.l10n_pe_vat_code
+        ):
             cust_type = partner.l10n_latam_identification_type_id.l10n_pe_vat_code
 
         return build_qr_data(

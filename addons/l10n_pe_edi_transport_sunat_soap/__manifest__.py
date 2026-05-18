@@ -3,8 +3,8 @@
 {
     "name": "Peru - EDI Transport: SUNAT directo SOAP",
     "summary": "Envío sincrónico a SUNAT vía SOAP (sendBill) para Factura/NC/ND. "
-               "Empaqueta XML firmado en ZIP, autentica con usuario SOL "
-               "(RUC+USER, password), parsea CDR de respuesta. BETA y producción.",
+    "Empaqueta XML firmado en ZIP, autentica con usuario SOL "
+    "(RUC+USER, password), parsea CDR de respuesta. BETA y producción.",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

@@ -5,10 +5,10 @@
 Patcheamos httpx.post y httpx.get para no tocar red.
 """
 
+from datetime import UTC
 from unittest.mock import MagicMock, patch
 
 import httpx
-
 from odoo.tests.common import TransactionCase, tagged
 
 from ..services.sunat_gre_rest import (
@@ -30,7 +30,6 @@ def _mk_response(status_code=200, json_data=None, text=""):
 
 @tagged("post_install", "-at_install", "l10n_pe_edi_gre")
 class TestSunatGreRestClient(TransactionCase):
-
     def _new_client(self, environment="beta"):
         return SunatGreRestClient(
             client_id="test-client-id",
@@ -51,29 +50,21 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_invalid_environment_raises(self):
         with self.assertRaisesRegex(ValueError, "environment"):
-            SunatGreRestClient(
-                client_id="x", client_secret="y", ruc="r", environment="staging"
-            )
+            SunatGreRestClient(client_id="x", client_secret="y", ruc="r", environment="staging")
 
     def test_missing_client_id_raises(self):
         with self.assertRaises(GreAuthError):
-            SunatGreRestClient(
-                client_id="", client_secret="y", ruc="r", environment="beta"
-            )
+            SunatGreRestClient(client_id="", client_secret="y", ruc="r", environment="beta")
 
     def test_missing_client_secret_raises(self):
         with self.assertRaises(GreAuthError):
-            SunatGreRestClient(
-                client_id="x", client_secret="", ruc="r", environment="beta"
-            )
+            SunatGreRestClient(client_id="x", client_secret="", ruc="r", environment="beta")
 
     # ─── OAuth2: get_access_token ────────────────────────────────
 
     def test_get_token_success_caches_token(self):
         c = self._new_client()
-        token_response = _mk_response(
-            200, {"access_token": "tok-123", "expires_in": 3600}
-        )
+        token_response = _mk_response(200, {"access_token": "tok-123", "expires_in": 3600})
         with patch("httpx.post", return_value=token_response) as mock_post:
             token = c.get_access_token()
         self.assertEqual(token, "tok-123")
@@ -82,19 +73,16 @@ class TestSunatGreRestClient(TransactionCase):
         call_args = mock_post.call_args
         self.assertIn("oauth2/token", call_args.args[0])
         # POST body
-        self.assertEqual(
-            call_args.kwargs["data"]["grant_type"], "client_credentials"
-        )
-        self.assertEqual(
-            call_args.kwargs["data"]["client_id"], "test-client-id"
-        )
+        self.assertEqual(call_args.kwargs["data"]["grant_type"], "client_credentials")
+        self.assertEqual(call_args.kwargs["data"]["client_id"], "test-client-id")
 
     def test_get_token_uses_cache_if_valid(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="cached-tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         # No mock; si llama httpx.post fallaría → si no falla, usó cache.
         token = c.get_access_token()
@@ -102,10 +90,11 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_get_token_refreshes_when_force(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="old-tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         token_response = _mk_response(200, {"access_token": "new-tok", "expires_in": 3600})
         with patch("httpx.post", return_value=token_response):
@@ -135,10 +124,11 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_send_gre_returns_ticket(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         send_resp = _mk_response(200, {"numTicket": "1234567890"})
         with patch("httpx.post", return_value=send_resp) as mock_post:
@@ -152,16 +142,15 @@ class TestSunatGreRestClient(TransactionCase):
         self.assertIn("hashZip", body["archivo"])
         self.assertIn("arcGreZip", body["archivo"])
         # Authorization header
-        self.assertEqual(
-            call_args.kwargs["headers"]["Authorization"], "Bearer tok"
-        )
+        self.assertEqual(call_args.kwargs["headers"]["Authorization"], "Bearer tok")
 
     def test_send_gre_401_refreshes_token_and_retries(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="old-tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         # 1ra llamada: 401 / 2da llamada (token refresh): 200 / 3ra (send retry): 200
         send_401 = _mk_response(401, text="token expired")
@@ -175,10 +164,11 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_send_gre_4xx_raises_with_sunat_code(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         err_resp = _mk_response(400, {"cod": "1503", "msg": "Hash inválido"})
         with patch("httpx.post", return_value=err_resp):
@@ -189,10 +179,11 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_send_gre_no_ticket_in_response_raises(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         # 200 OK pero sin numTicket
         with patch("httpx.post", return_value=_mk_response(200, {"otra_key": "x"})):
@@ -203,16 +194,20 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_get_status_accepted(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
-        status_resp = _mk_response(200, {
-            "codRespuesta": "0",
-            "indEstado": "05",
-            "arcCdr": "ZklSb289CdrBytes==",
-        })
+        status_resp = _mk_response(
+            200,
+            {
+                "codRespuesta": "0",
+                "indEstado": "05",
+                "arcCdr": "ZklSb289CdrBytes==",
+            },
+        )
         with patch("httpx.get", return_value=status_resp) as mock_get:
             status = c.get_status("ticket-123")
         self.assertEqual(status.ind_estado, "05")
@@ -223,39 +218,55 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_get_status_in_process(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
-        with patch("httpx.get", return_value=_mk_response(200, {
-            "codRespuesta": "0", "indEstado": "01",
-        })):
+        with patch(
+            "httpx.get",
+            return_value=_mk_response(
+                200,
+                {
+                    "codRespuesta": "0",
+                    "indEstado": "01",
+                },
+            ),
+        ):
             status = c.get_status("ticket-x")
         self.assertTrue(status.is_in_process)
 
     def test_get_status_rejected_carries_error(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
-        with patch("httpx.get", return_value=_mk_response(200, {
-            "codRespuesta": "98",
-            "indEstado": "03",
-            "error": {"numError": "2335", "desError": "RUC no activo"},
-        })):
+        with patch(
+            "httpx.get",
+            return_value=_mk_response(
+                200,
+                {
+                    "codRespuesta": "98",
+                    "indEstado": "03",
+                    "error": {"numError": "2335", "desError": "RUC no activo"},
+                },
+            ),
+        ):
             status = c.get_status("t")
         self.assertTrue(status.is_rejected)
         self.assertEqual(status.error["numError"], "2335")
 
     def test_get_status_5xx_raises(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         with patch("httpx.get", return_value=_mk_response(500, text="boom")):
             with self.assertRaises(GreRestError) as ctx:
@@ -264,10 +275,11 @@ class TestSunatGreRestClient(TransactionCase):
 
     def test_get_status_network_error(self):
         c = self._new_client()
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
+
         c._token_cache = TokenCache(
             token="tok",
-            expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
+            expires_at=datetime.now(UTC) + timedelta(minutes=30),
         )
         with patch("httpx.get", side_effect=httpx.ReadTimeout("slow")):
             with self.assertRaisesRegex(GreRestError, "red"):

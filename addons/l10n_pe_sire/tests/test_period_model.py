@@ -11,26 +11,29 @@ from ..services.sunat_sire_rest import SireTicketStatus
 
 @tagged("post_install", "-at_install", "l10n_pe_sire")
 class TestSirePeriodModel(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test SIRE Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-            "l10n_pe_sire_client_id": "test-client",
-            "l10n_pe_sire_client_secret": "test-secret",
-            "l10n_pe_edi_environment": "beta",
-        })
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test SIRE Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+                "l10n_pe_sire_client_id": "test-client",
+                "l10n_pe_sire_client_secret": "test-secret",
+                "l10n_pe_edi_environment": "beta",
+            }
+        )
 
     def _make_period(self, periodo="202604", libro="rce"):
-        return self.env["l10n.pe.sire.period"].create({
-            "company_id": self.company.id,
-            "periodo": periodo,
-            "libro": libro,
-        })
+        return self.env["l10n.pe.sire.period"].create(
+            {
+                "company_id": self.company.id,
+                "periodo": periodo,
+                "libro": libro,
+            }
+        )
 
     # ─── Validaciones ────────────────────────────────────────────
 
@@ -82,10 +85,12 @@ class TestSirePeriodModel(TransactionCase):
 
     def test_check_ticket_done_moves_to_ready(self):
         period = self._make_period("202605", "rce")
-        period.write({
-            "state": "requested",
-            "ticket": "T-1",
-        })
+        period.write(
+            {
+                "state": "requested",
+                "ticket": "T-1",
+            }
+        )
         done_status = SireTicketStatus(
             cod_estado="02",
             descripcion_estado="TERMINADO",
@@ -133,15 +138,16 @@ class TestSirePeriodModel(TransactionCase):
 
     def test_download_writes_file_and_advances_state(self):
         period = self._make_period("202605", "rce")
-        period.write({
-            "state": "ready",
-            "ticket": "T-1",
-            "file_url": "https://x/file.txt",
-            "file_name": "file.txt",
-        })
+        period.write(
+            {
+                "state": "ready",
+                "ticket": "T-1",
+                "file_url": "https://x/file.txt",
+                "file_name": "file.txt",
+            }
+        )
         with patch(
-            "odoo.addons.l10n_pe_sire.services.sunat_sire_rest."
-            "SunatSireRestClient.download_file",
+            "odoo.addons.l10n_pe_sire.services.sunat_sire_rest.SunatSireRestClient.download_file",
             return_value=b"TXT_CONTENT",
         ):
             period.action_download()

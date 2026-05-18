@@ -17,5 +17,5 @@ class AccountFiscalPosition(models.Model):
         selection=REGIMEN_TRIBUTARIO_SELECTION,
         string="Régimen Tributario",
         help="Régimen tributario SUNAT al que aplica esta posición fiscal. "
-             "Vacío = aplica a cualquier régimen (comportamiento por defecto).",
+        "Vacío = aplica a cualquier régimen (comportamiento por defecto).",
     )

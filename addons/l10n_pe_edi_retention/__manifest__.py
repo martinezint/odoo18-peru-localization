@@ -3,10 +3,10 @@
 {
     "name": "Peru - Comprobantes de Retención (20) y Percepción (40)",
     "summary": "Modelos l10n.pe.retention y l10n.pe.perception con sus líneas "
-               "(documentos de origen). UBL builders SUNAT específicos "
-               "(namespace sac, esquemas Retention-1 y Perception-1). "
-               "Reusa firma XAdES de l10n_pe_edi y transport SOAP de "
-               "l10n_pe_edi_transport_sunat_soap.",
+    "(documentos de origen). UBL builders SUNAT específicos "
+    "(namespace sac, esquemas Retention-1 y Perception-1). "
+    "Reusa firma XAdES de l10n_pe_edi y transport SOAP de "
+    "l10n_pe_edi_transport_sunat_soap.",
     "version": "18.0.0.1.0",
     "category": "Accounting/Localizations/Peru",
     "author": "Marc Martínez & contributors",

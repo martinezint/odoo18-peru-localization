@@ -1,7 +1,6 @@
 # Copyright 2026 Marc Martínez & contributors
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
 
-import base64
 from unittest.mock import patch
 
 from odoo.exceptions import UserError
@@ -18,36 +17,55 @@ class TestGreCheckStatus(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test Cron GRE Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-            "l10n_pe_gre_client_id": "test-id",
-            "l10n_pe_gre_client_secret": "test-secret",
-            "l10n_pe_edi_environment": "beta",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test Cron GRE Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+                "l10n_pe_gre_client_id": "test-id",
+                "l10n_pe_gre_client_secret": "test-secret",
+                "l10n_pe_edi_environment": "beta",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "Cliente GRE",
-            "country_id": cls.pe.id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "Cliente GRE",
+                "country_id": cls.pe.id,
+            }
+        )
 
     def _make_doc(self, ticket=None, status=None):
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_line_ids": [(0, 0, {
-                "name": "X", "quantity": 1, "price_unit": 100.0, "tax_ids": [],
-            })],
-        })
-        doc = self.env["l10n.pe.edi.document"].create({
-            "move_id": move.id,
-            "name": f"20131312955-09-T001-{move.id}.xml",
-            "state": "sent",
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "X",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        doc = self.env["l10n.pe.edi.document"].create(
+            {
+                "move_id": move.id,
+                "name": f"20131312955-09-T001-{move.id}.xml",
+                "state": "sent",
+            }
+        )
         if ticket:
             doc.write({"gre_ticket": ticket, "gre_ind_estado": status or "01"})
         return doc
@@ -66,8 +84,7 @@ class TestGreCheckStatus(TransactionCase):
             cdr_base64="QkFTRTY0X0NEUg==",  # base64 dummy
         )
         with patch(
-            "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest."
-            "SunatGreRestClient.get_status",
+            "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest.SunatGreRestClient.get_status",
             return_value=accepted,
         ):
             doc.action_l10n_pe_gre_check_status()
@@ -84,8 +101,7 @@ class TestGreCheckStatus(TransactionCase):
             error={"numError": "2335", "desError": "RUC suspendido"},
         )
         with patch(
-            "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest."
-            "SunatGreRestClient.get_status",
+            "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest.SunatGreRestClient.get_status",
             return_value=rejected,
         ):
             doc.action_l10n_pe_gre_check_status()
@@ -99,8 +115,7 @@ class TestGreCheckStatus(TransactionCase):
         original_state = doc.state
         in_proc = GreStatus(ind_estado="01")
         with patch(
-            "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest."
-            "SunatGreRestClient.get_status",
+            "odoo.addons.l10n_pe_edi_gre.services.sunat_gre_rest.SunatGreRestClient.get_status",
             return_value=in_proc,
         ):
             doc.action_l10n_pe_gre_check_status()
@@ -119,35 +134,55 @@ class TestCronPollGreTickets(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test Cron GRE Co 2",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-            "l10n_pe_gre_client_id": "test-id",
-            "l10n_pe_gre_client_secret": "test-secret",
-            "l10n_pe_edi_environment": "beta",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test Cron GRE Co 2",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+                "l10n_pe_gre_client_id": "test-id",
+                "l10n_pe_gre_client_secret": "test-secret",
+                "l10n_pe_edi_environment": "beta",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "P", "country_id": cls.pe.id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "P",
+                "country_id": cls.pe.id,
+            }
+        )
 
     def _make_doc(self, ticket=None, status=None):
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_line_ids": [(0, 0, {
-                "name": "X", "quantity": 1, "price_unit": 100.0, "tax_ids": [],
-            })],
-        })
-        doc = self.env["l10n.pe.edi.document"].create({
-            "move_id": move.id,
-            "name": f"GRE-{move.id}.xml",
-            "state": "sent",
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "X",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        doc = self.env["l10n.pe.edi.document"].create(
+            {
+                "move_id": move.id,
+                "name": f"GRE-{move.id}.xml",
+                "state": "sent",
+            }
+        )
         if ticket:
             doc.write({"gre_ticket": ticket, "gre_ind_estado": status or "01"})
         return doc
@@ -162,7 +197,9 @@ class TestCronPollGreTickets(TransactionCase):
             called.append(self_doc.id)
 
         with patch.object(
-            type(d1), "_gre_check_status_one", _track,
+            type(d1),
+            "_gre_check_status_one",
+            _track,
         ):
             self.env["l10n.pe.edi.document"]._cron_poll_gre_tickets()
         self.assertIn(d1.id, called)
@@ -180,7 +217,9 @@ class TestCronPollGreTickets(TransactionCase):
             processed.append(self_doc.id)
 
         with patch.object(
-            type(d1), "_gre_check_status_one", _track_fail_first,
+            type(d1),
+            "_gre_check_status_one",
+            _track_fail_first,
         ):
             self.env["l10n.pe.edi.document"]._cron_poll_gre_tickets()
         self.assertIn(d2.id, processed)

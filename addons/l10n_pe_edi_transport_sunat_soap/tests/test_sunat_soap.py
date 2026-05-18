@@ -41,28 +41,27 @@ CDR_ACCEPTED_XML = b"""<?xml version="1.0" encoding="UTF-8"?>
 
 @tagged("post_install", "-at_install", "l10n_pe_edi_transport_sunat_soap")
 class TestSunatSoapClient(TransactionCase):
-
     # ─── Construcción ────────────────────────────────────────────
 
     def test_init_uses_beta_endpoint_by_default(self):
-        c = SunatBillService(ruc="20131312955", sol_user="MODDATOS",
-                             sol_password="MODDATOS")
+        c = SunatBillService(ruc="20131312955", sol_user="MODDATOS", sol_password="MODDATOS")
         self.assertEqual(c.endpoint, ENDPOINTS["beta"])
         self.assertEqual(c.username, "20131312955MODDATOS")
 
     def test_init_production_endpoint(self):
-        c = SunatBillService(ruc="20131312955", sol_user="USER",
-                             sol_password="X", environment="production")
+        c = SunatBillService(
+            ruc="20131312955", sol_user="USER", sol_password="X", environment="production"
+        )
         self.assertEqual(c.endpoint, ENDPOINTS["production"])
 
     def test_init_invalid_environment_raises(self):
         with self.assertRaisesRegex(ValueError, "environment"):
-            SunatBillService(ruc="R", sol_user="U", sol_password="P",
-                             environment="staging")
+            SunatBillService(ruc="R", sol_user="U", sol_password="P", environment="staging")
 
     def test_init_endpoint_override(self):
-        c = SunatBillService(ruc="R", sol_user="U", sol_password="P",
-                             endpoint_override="http://localhost/test")
+        c = SunatBillService(
+            ruc="R", sol_user="U", sol_password="P", endpoint_override="http://localhost/test"
+        )
         self.assertEqual(c.endpoint, "http://localhost/test")
 
     # ─── ZIP helpers ─────────────────────────────────────────────
@@ -100,8 +99,7 @@ class TestSunatSoapClient(TransactionCase):
     # ─── send_bill (zeep mockeado) ───────────────────────────────
 
     def test_send_bill_returns_cdr_bytes(self):
-        client = SunatBillService(ruc="20131312955", sol_user="MODDATOS",
-                                  sol_password="MODDATOS")
+        client = SunatBillService(ruc="20131312955", sol_user="MODDATOS", sol_password="MODDATOS")
         # Mock interno: el response es el ZIP CDR
         cdr_zip = _make_cdr_zip("20131312955-01-F001-1.xml", CDR_ACCEPTED_XML)
         fake_service = MagicMock()
@@ -110,12 +108,11 @@ class TestSunatSoapClient(TransactionCase):
         fake_client.service = fake_service
 
         with patch.object(
-            type(client), "client",
+            type(client),
+            "client",
             new_callable=lambda: property(lambda self: fake_client),
         ):
-            cdr_bytes = client.send_bill(
-                "20131312955-01-F001-1.zip", b"fake-zip-content"
-            )
+            cdr_bytes = client.send_bill("20131312955-01-F001-1.zip", b"fake-zip-content")
         self.assertEqual(cdr_bytes, CDR_ACCEPTED_XML)
         fake_service.sendBill.assert_called_once_with(
             fileName="20131312955-01-F001-1.zip",
@@ -124,6 +121,7 @@ class TestSunatSoapClient(TransactionCase):
 
     def test_send_bill_zeep_fault_raises_sunat_error(self):
         from zeep.exceptions import Fault
+
         client = SunatBillService(ruc="20131312955", sol_user="X", sol_password="X")
         fake_service = MagicMock()
         fault = Fault("0104: Clave incorrecta", code="0104")
@@ -132,7 +130,8 @@ class TestSunatSoapClient(TransactionCase):
         fake_client.service = fake_service
 
         with patch.object(
-            type(client), "client",
+            type(client),
+            "client",
             new_callable=lambda: property(lambda self: fake_client),
         ):
             with self.assertRaises(SunatSoapError) as ctx:
@@ -142,16 +141,16 @@ class TestSunatSoapClient(TransactionCase):
 
     def test_send_bill_transport_error_raises(self):
         from zeep.exceptions import TransportError
+
         client = SunatBillService(ruc="20131312955", sol_user="X", sol_password="X")
         fake_service = MagicMock()
-        fake_service.sendBill.side_effect = TransportError(
-            "Connection refused", status_code=500
-        )
+        fake_service.sendBill.side_effect = TransportError("Connection refused", status_code=500)
         fake_client = MagicMock()
         fake_client.service = fake_service
 
         with patch.object(
-            type(client), "client",
+            type(client),
+            "client",
             new_callable=lambda: property(lambda self: fake_client),
         ):
             with self.assertRaises(SunatSoapError) as ctx:
@@ -170,43 +169,61 @@ class TestAccountMoveSendAction(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test Transport Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-            "l10n_pe_edi_sol_user": "MODDATOS",
-            "l10n_pe_edi_sol_password": "MODDATOS",
-            "l10n_pe_edi_environment": "beta",
-        })
-        # Necesario para que account.move.create() encuentre journals + accounts.
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test Transport Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+                "l10n_pe_edi_sol_user": "MODDATOS",
+                "l10n_pe_edi_sol_password": "MODDATOS",
+                "l10n_pe_edi_environment": "beta",
+            }
         )
+        # Necesario para que account.move.create() encuentre journals + accounts.
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
 
     def _make_signed_doc(self):
         """Crea un account.move + EDI document en estado 'signed' (sin pasar por _post)."""
-        partner = self.env["res.partner"].create({
-            "name": "Client Co",
-            "country_id": self.pe.id,
-        })
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Client Co",
+                "country_id": self.pe.id,
+            }
+        )
         # Move "sintético" — no validamos contabilidad, solo trazabilidad EDI
-        move = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": partner.id,
-            "company_id": self.company.id,
-            "invoice_line_ids": [(0, 0, {
-                "name": "Test",
-                "quantity": 1,
-                "price_unit": 100.0,
-                "tax_ids": [],
-            })],
-        })
-        doc = self.env["l10n.pe.edi.document"].create({
-            "move_id": move.id,
-            "name": "20131312955-01-F001-1.xml",
-            "state": "signed",
-            "xml_signed": b"<fake/>".__class__(__import__("base64").b64encode(b"<fake-signed-xml/>")),
-        })
+        move = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": partner.id,
+                    "company_id": self.company.id,
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Test",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        doc = self.env["l10n.pe.edi.document"].create(
+            {
+                "move_id": move.id,
+                "name": "20131312955-01-F001-1.xml",
+                "state": "signed",
+                "xml_signed": b"<fake/>".__class__(
+                    __import__("base64").b64encode(b"<fake-signed-xml/>")
+                ),
+            }
+        )
         move.l10n_pe_edi_document_id = doc.id
         return move, doc
 

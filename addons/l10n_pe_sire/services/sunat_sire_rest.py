@@ -22,12 +22,12 @@ NOTA: SUNAT actualiza las rutas SIRE con frecuencia. Las constantes ENDPOINTS
 de abajo reflejan los paths a fecha del commit; revisar manual del programador
 SUNAT vigente antes de un release.
 """
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -40,15 +40,11 @@ SIRE_BASE = {
     "production": "https://api-sire.sunat.gob.pe",
 }
 
-AUTH_URL_TPL = (
-    "https://api-seguridad.sunat.gob.pe/v1/clientessol/{client_id}/oauth2/token/"
-)
+AUTH_URL_TPL = "https://api-seguridad.sunat.gob.pe/v1/clientessol/{client_id}/oauth2/token/"
 SCOPE_SIRE = "https://api-sire.sunat.gob.pe"
 
 # Paths (relativos a SIRE_BASE)
-PATH_RCE_PROPUESTA_POST = (
-    "/v1/contribuyente/migeigv/libros/rce/propuesta/web/propuesta/{periodo}/exportacioncomprobantepropuesta"
-)
+PATH_RCE_PROPUESTA_POST = "/v1/contribuyente/migeigv/libros/rce/propuesta/web/propuesta/{periodo}/exportacioncomprobantepropuesta"
 PATH_RVIE_PROPUESTA_POST = (
     "/v1/contribuyente/migeigv/libros/rvie/propuesta/web/propuesta/{periodo}/exportarpropuesta"
 )
@@ -66,11 +62,13 @@ ESTADO_ERROR = "03"
 
 # ─── Excepciones ──────────────────────────────────────────────────────
 
+
 class SireError(Exception):
     """Error genérico SIRE."""
 
-    def __init__(self, message: str, *, status_code: int | None = None,
-                 sunat_code: str | None = None):
+    def __init__(
+        self, message: str, *, status_code: int | None = None, sunat_code: str | None = None
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.sunat_code = sunat_code
@@ -82,26 +80,30 @@ class SireAuthError(SireError):
 
 # ─── Cache de token ───────────────────────────────────────────────────
 
+
 @dataclass
 class SireTokenCache:
     """Mismo patrón que GRE TokenCache pero independiente (scope distinto)."""
+
     token: str = ""
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
     def is_valid(self, safety_window_sec: int = 30) -> bool:
         if not self.token or not self.expires_at:
             return False
-        return datetime.now(timezone.utc) + timedelta(seconds=safety_window_sec) < self.expires_at
+        return datetime.now(UTC) + timedelta(seconds=safety_window_sec) < self.expires_at
 
 
 # ─── Status response ──────────────────────────────────────────────────
 
+
 @dataclass
 class SireTicketStatus:
     """Resultado de polling de ticket SIRE."""
+
     cod_estado: str = ""
     descripcion_estado: str = ""
-    archivo_url: str = ""        # URL para descarga cuando TERMINADO
+    archivo_url: str = ""  # URL para descarga cuando TERMINADO
     archivo_nombre: str = ""
     raw: dict = field(default_factory=dict)
 
@@ -119,6 +121,7 @@ class SireTicketStatus:
 
 
 # ─── Cliente principal ────────────────────────────────────────────────
+
 
 class SunatSireRestClient:
     """Cliente REST SIRE.
@@ -143,7 +146,7 @@ class SunatSireRestClient:
         ruc: str,
         environment: str = "beta",
         timeout: int = DEFAULT_TIMEOUT,
-        token_cache: Optional[SireTokenCache] = None,
+        token_cache: SireTokenCache | None = None,
     ):
         if environment not in SIRE_BASE:
             raise ValueError(f"environment debe ser 'beta' o 'production', no {environment!r}")
@@ -192,7 +195,7 @@ class SunatSireRestClient:
         if not access_token:
             raise SireAuthError("Respuesta SUNAT sin access_token")
         self._token_cache.token = access_token
-        self._token_cache.expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+        self._token_cache.expires_at = datetime.now(UTC) + timedelta(seconds=expires_in)
         _logger.info("SIRE token obtenido, expira en %s s.", expires_in)
         return access_token
 
@@ -263,8 +266,12 @@ class SunatSireRestClient:
         return SireTicketStatus(
             cod_estado=str(data.get("codEstado") or data.get("estado") or ""),
             descripcion_estado=str(data.get("desEstado") or data.get("descripcion") or ""),
-            archivo_url=data.get("archivo", {}).get("url", "") if isinstance(data.get("archivo"), dict) else "",
-            archivo_nombre=data.get("archivo", {}).get("nombre", "") if isinstance(data.get("archivo"), dict) else "",
+            archivo_url=data.get("archivo", {}).get("url", "")
+            if isinstance(data.get("archivo"), dict)
+            else "",
+            archivo_nombre=data.get("archivo", {}).get("nombre", "")
+            if isinstance(data.get("archivo"), dict)
+            else "",
             raw=data,
         )
 

@@ -16,11 +16,11 @@ Usamos python-xmlsec (binding a libxmlsec1) porque es la implementación más
 sólida en Python para XML Signature. signxml tiene problemas conocidos con C14N
 y SUNAT en casos esquina.
 """
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional, Union
 
 import xmlsec
 from lxml import etree
@@ -47,7 +47,7 @@ class XadesBesSigner:
                                    encoding="UTF-8", standalone=False)
     """
 
-    def __init__(self, cert_pem: bytes, key_pem: bytes, key_password: Optional[bytes] = None):
+    def __init__(self, cert_pem: bytes, key_pem: bytes, key_password: bytes | None = None):
         """Carga key + cert ya en formato PEM."""
         if not cert_pem or not key_pem:
             raise XadesSigningError("cert_pem y key_pem son obligatorios")
@@ -64,13 +64,13 @@ class XadesBesSigner:
     # ─── Factory methods ─────────────────────────────────────────────
 
     @classmethod
-    def from_pfx(cls, pfx_path: Union[str, Path], pfx_password: bytes) -> "XadesBesSigner":
+    def from_pfx(cls, pfx_path: str | Path, pfx_password: bytes) -> XadesBesSigner:
         """Carga desde archivo PKCS#12 (.pfx/.p12)."""
         pfx_bytes = Path(pfx_path).read_bytes()
         return cls.from_pfx_bytes(pfx_bytes, pfx_password)
 
     @classmethod
-    def from_pfx_bytes(cls, pfx_bytes: bytes, pfx_password: bytes) -> "XadesBesSigner":
+    def from_pfx_bytes(cls, pfx_bytes: bytes, pfx_password: bytes) -> XadesBesSigner:
         """Extrae key + cert del PKCS#12 vía cryptography (puro Python) y los
         pasa a xmlsec en formato PEM."""
         from cryptography.hazmat.primitives import serialization
@@ -126,11 +126,7 @@ class XadesBesSigner:
 
     def _find_extension_content(self, root) -> etree._Element:
         """Localiza el ext:ExtensionContent del primer UBLExtension."""
-        path = (
-            f"{{{NS_EXT}}}UBLExtensions"
-            f"/{{{NS_EXT}}}UBLExtension"
-            f"/{{{NS_EXT}}}ExtensionContent"
-        )
+        path = f"{{{NS_EXT}}}UBLExtensions/{{{NS_EXT}}}UBLExtension/{{{NS_EXT}}}ExtensionContent"
         ext_content = root.find(path)
         if ext_content is None:
             raise XadesSigningError(

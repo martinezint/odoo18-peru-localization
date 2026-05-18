@@ -11,6 +11,7 @@ Estructura espejo de Retention pero:
 - SUNATPerceptionDocument > SUNATPerceptionInformation con
   SUNATPerceptionAmount, SUNATPerceptionDate, SUNATTotalCashed.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,7 +19,6 @@ from datetime import date
 from decimal import Decimal
 
 from lxml import etree
-
 
 NS_PERCEPTION = "urn:sunat:names:specification:ubl:peru:schema:xsd:Perception-1"
 NS_CBC = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
@@ -39,8 +39,8 @@ NSMAP_PERCEPTION = {
 
 # Códigos SUNAT catálogo 22 (régimen percepción)
 PERCEPTION_REGIME_INTERNAL_SALE = "01"  # Venta interna — 2%
-PERCEPTION_REGIME_FUEL = "02"            # Combustible — 1%
-PERCEPTION_REGIME_IMPORT = "03"          # Importación — 5%
+PERCEPTION_REGIME_FUEL = "02"  # Combustible — 1%
+PERCEPTION_REGIME_IMPORT = "03"  # Importación — 5%
 
 
 @dataclass
@@ -55,6 +55,7 @@ class PerceptionParty:
 @dataclass
 class PerceptionDocument:
     """Una factura sobre la cual el agente está percibiendo IGV."""
+
     doc_type_code: str
     serie_number: str
     issue_date: date
@@ -104,23 +105,23 @@ class PerceptionUblBuilder:
         self._add_receiver_party(root, perception.receiver)
         self._add_perception_system(root, perception)
         if perception.note_amount_in_words:
-            self._cbc(root, "Note", perception.note_amount_in_words,
-                      languageLocaleID="1000")
-        self._cbc(root, "TotalInvoiceAmount",
-                  _fmt(perception.total_perception_amount),
-                  currencyID=perception.currency_code)
-        self._cbc(root, "TotalPaid",
-                  _fmt(perception.total_cashed),
-                  currencyID=perception.currency_code)
+            self._cbc(root, "Note", perception.note_amount_in_words, languageLocaleID="1000")
+        self._cbc(
+            root,
+            "TotalInvoiceAmount",
+            _fmt(perception.total_perception_amount),
+            currencyID=perception.currency_code,
+        )
+        self._cbc(
+            root, "TotalPaid", _fmt(perception.total_cashed), currencyID=perception.currency_code
+        )
         for doc in perception.documents:
             self._add_perception_document(root, doc)
         return root
 
     def build_xml_bytes(self, perception: Perception) -> bytes:
         root = self.build(perception)
-        return etree.tostring(
-            root, xml_declaration=True, encoding="UTF-8", standalone=False
-        )
+        return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=False)
 
     def _add_extensions(self, root):
         exts = etree.SubElement(root, f"{{{NS_EXT}}}UBLExtensions")
@@ -149,10 +150,14 @@ class PerceptionUblBuilder:
         wrapper = etree.SubElement(parent, f"{{{NS_CAC}}}{role_tag}")
         party_el = etree.SubElement(wrapper, f"{{{NS_CAC}}}Party")
         identification = etree.SubElement(party_el, f"{{{NS_CAC}}}PartyIdentification")
-        self._cbc(identification, "ID", party.ruc,
-                  schemeID=party.doc_type_code,
-                  schemeAgencyName="PE:SUNAT",
-                  schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06")
+        self._cbc(
+            identification,
+            "ID",
+            party.ruc,
+            schemeID=party.doc_type_code,
+            schemeAgencyName="PE:SUNAT",
+            schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06",
+        )
         if party.address_street:
             address = etree.SubElement(party_el, f"{{{NS_CAC}}}PostalAddress")
             country = etree.SubElement(address, f"{{{NS_CAC}}}Country")
@@ -170,29 +175,33 @@ class PerceptionUblBuilder:
 
     def _add_perception_system(self, root, per: Perception):
         etree.SubElement(root, f"{{{NS_SAC}}}SUNATPerceptionSystemCode").text = per.regime_code
-        etree.SubElement(root, f"{{{NS_SAC}}}SUNATPerceptionPercent").text = _fmt(per.regime_percent, 0)
+        etree.SubElement(root, f"{{{NS_SAC}}}SUNATPerceptionPercent").text = _fmt(
+            per.regime_percent, 0
+        )
 
     def _add_perception_document(self, root, doc: PerceptionDocument):
         d = etree.SubElement(root, f"{{{NS_SAC}}}SUNATPerceptionDocumentReference")
         self._cbc(d, "ID", doc.serie_number, schemeID=doc.doc_type_code)
         self._cbc(d, "IssueDate", doc.issue_date.isoformat())
-        self._cbc(d, "TotalInvoiceAmount", _fmt(doc.total_amount),
-                  currencyID=doc.currency_code)
+        self._cbc(d, "TotalInvoiceAmount", _fmt(doc.total_amount), currencyID=doc.currency_code)
 
         payment = etree.SubElement(d, f"{{{NS_CAC}}}Payment")
         self._cbc(payment, "ID", doc.payment_id)
-        self._cbc(payment, "PaidAmount", _fmt(doc.paid_amount),
-                  currencyID=doc.currency_code)
+        self._cbc(payment, "PaidAmount", _fmt(doc.paid_amount), currencyID=doc.currency_code)
         if doc.paid_date:
             self._cbc(payment, "PaidDate", doc.paid_date.isoformat())
 
         info = etree.SubElement(d, f"{{{NS_SAC}}}SUNATPerceptionInformation")
-        etree.SubElement(info, f"{{{NS_SAC}}}SUNATPerceptionAmount",
-                         currencyID=doc.currency_code).text = _fmt(doc.perception_amount)
+        etree.SubElement(
+            info, f"{{{NS_SAC}}}SUNATPerceptionAmount", currencyID=doc.currency_code
+        ).text = _fmt(doc.perception_amount)
         if doc.perception_date:
-            etree.SubElement(info, f"{{{NS_SAC}}}SUNATPerceptionDate").text = doc.perception_date.isoformat()
-        etree.SubElement(info, f"{{{NS_SAC}}}SUNATTotalCashed",
-                         currencyID=doc.currency_code).text = _fmt(doc.total_cashed)
+            etree.SubElement(
+                info, f"{{{NS_SAC}}}SUNATPerceptionDate"
+            ).text = doc.perception_date.isoformat()
+        etree.SubElement(
+            info, f"{{{NS_SAC}}}SUNATTotalCashed", currencyID=doc.currency_code
+        ).text = _fmt(doc.total_cashed)
         if doc.currency_code != "PEN" or doc.exchange_rate != Decimal("1.000"):
             er = etree.SubElement(info, f"{{{NS_CAC}}}ExchangeRate")
             self._cbc(er, "SourceCurrencyCode", doc.currency_code)

@@ -10,23 +10,24 @@ from odoo.tests.common import TransactionCase, tagged
 
 @tagged("post_install", "-at_install", "l10n_pe_pos_edi")
 class TestRcWizard(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Test RC Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Test RC Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "CLI RC",
-            "country_id": cls.pe.id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "CLI RC",
+                "country_id": cls.pe.id,
+            }
+        )
 
     _boleta_seq = 0  # contador clase para nombres únicos
 
@@ -42,32 +43,46 @@ class TestRcWizard(TransactionCase):
         violar el unique constraint account_move_unique_name.
         """
         num = self._next_seq()
-        m = self.env["account.move"].with_company(self.company).create({
-            "move_type": "out_invoice",
-            "partner_id": self.partner.id,
-            "company_id": self.company.id,
-            "invoice_date": date(2026, 5, day),
-            "date": date(2026, 5, day),
-            "name": f"{serie}/{num:08d}",
-            "invoice_line_ids": [(0, 0, {
-                "name": "Producto", "quantity": 1, "price_unit": total,
-                "tax_ids": [],
-            })],
-        })
-        self.env.cr.execute(
-            "UPDATE account_move SET state='posted' WHERE id=%s", (m.id,)
+        m = (
+            self.env["account.move"]
+            .with_company(self.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": self.partner.id,
+                    "company_id": self.company.id,
+                    "invoice_date": date(2026, 5, day),
+                    "date": date(2026, 5, day),
+                    "name": f"{serie}/{num:08d}",
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Producto",
+                                "quantity": 1,
+                                "price_unit": total,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
         )
+        self.env.cr.execute("UPDATE account_move SET state='posted' WHERE id=%s", (m.id,))
         m.invalidate_recordset()
         return m
 
     def _make_wizard(self, ref_date=date(2026, 5, 17), correlativo=1, sign=False):
-        return self.env["l10n.pe.rc.wizard"].create({
-            "company_id": self.company.id,
-            "reference_date": ref_date,
-            "issue_date": date(2026, 5, 18),
-            "correlativo": correlativo,
-            "sign_xml": sign,
-        })
+        return self.env["l10n.pe.rc.wizard"].create(
+            {
+                "company_id": self.company.id,
+                "reference_date": ref_date,
+                "issue_date": date(2026, 5, 18),
+                "correlativo": correlativo,
+                "sign_xml": sign,
+            }
+        )
 
     # ─── Casos sin boletas ───────────────────────────────────────
 
@@ -77,17 +92,21 @@ class TestRcWizard(TransactionCase):
             wiz.action_generate()
 
     def test_no_ruc_raises(self):
-        no_ruc_co = self.env["res.company"].create({
-            "name": "NoRUC Co",
-            "country_id": self.pe.id,
-        })
-        wiz = self.env["l10n.pe.rc.wizard"].create({
-            "company_id": no_ruc_co.id,
-            "reference_date": date(2026, 5, 17),
-            "issue_date": date(2026, 5, 18),
-            "correlativo": 1,
-            "sign_xml": False,
-        })
+        no_ruc_co = self.env["res.company"].create(
+            {
+                "name": "NoRUC Co",
+                "country_id": self.pe.id,
+            }
+        )
+        wiz = self.env["l10n.pe.rc.wizard"].create(
+            {
+                "company_id": no_ruc_co.id,
+                "reference_date": date(2026, 5, 17),
+                "issue_date": date(2026, 5, 18),
+                "correlativo": 1,
+                "sign_xml": False,
+            }
+        )
         with self.assertRaisesRegex(UserError, "RUC"):
             wiz.action_generate()
 
@@ -103,6 +122,7 @@ class TestRcWizard(TransactionCase):
         self.assertIn("RC-20260518-001", wiz.xml_filename)
         # XML válido (parseable)
         from lxml import etree
+
         xml = base64.b64decode(wiz.xml_data)
         root = etree.fromstring(xml)
         self.assertEqual(etree.QName(root.tag).localname, "SummaryDocuments")
@@ -144,68 +164,88 @@ class TestRcWizardAutoSend(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.company = cls.env["res.company"].create({
-            "name": "Auto Send Co",
-            "country_id": cls.pe.id,
-            "vat": "20131312955",
-            "l10n_pe_edi_sol_user": "MODDATOS",
-            "l10n_pe_edi_sol_password": "MODDATOS",
-            "l10n_pe_edi_environment": "beta",
-        })
-        cls.env["account.chart.template"].try_loading(
-            "pe", company=cls.company, install_demo=False
+        cls.company = cls.env["res.company"].create(
+            {
+                "name": "Auto Send Co",
+                "country_id": cls.pe.id,
+                "vat": "20131312955",
+                "l10n_pe_edi_sol_user": "MODDATOS",
+                "l10n_pe_edi_sol_password": "MODDATOS",
+                "l10n_pe_edi_environment": "beta",
+            }
         )
-        cls.partner = cls.env["res.partner"].create({
-            "name": "Cli Auto",
-            "country_id": cls.pe.id,
-        })
+        cls.env["account.chart.template"].try_loading("pe", company=cls.company, install_demo=False)
+        cls.partner = cls.env["res.partner"].create(
+            {
+                "name": "Cli Auto",
+                "country_id": cls.pe.id,
+            }
+        )
         # 1 boleta el día 17
-        m = cls.env["account.move"].with_company(cls.company).create({
-            "move_type": "out_invoice",
-            "partner_id": cls.partner.id,
-            "company_id": cls.company.id,
-            "invoice_date": date(2026, 5, 17),
-            "date": date(2026, 5, 17),
-            "name": "B001/00000099",
-            "invoice_line_ids": [(0, 0, {
-                "name": "Producto", "quantity": 1, "price_unit": 100.0,
-                "tax_ids": [],
-            })],
-        })
-        cls.env.cr.execute(
-            "UPDATE account_move SET state='posted' WHERE id=%s", (m.id,)
+        m = (
+            cls.env["account.move"]
+            .with_company(cls.company)
+            .create(
+                {
+                    "move_type": "out_invoice",
+                    "partner_id": cls.partner.id,
+                    "company_id": cls.company.id,
+                    "invoice_date": date(2026, 5, 17),
+                    "date": date(2026, 5, 17),
+                    "name": "B001/00000099",
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "name": "Producto",
+                                "quantity": 1,
+                                "price_unit": 100.0,
+                                "tax_ids": [],
+                            },
+                        )
+                    ],
+                }
+            )
         )
+        cls.env.cr.execute("UPDATE account_move SET state='posted' WHERE id=%s", (m.id,))
         m.invalidate_recordset()
 
     def _make_wizard(self, sign=True, send=True):
-        return self.env["l10n.pe.rc.wizard"].create({
-            "company_id": self.company.id,
-            "reference_date": date(2026, 5, 17),
-            "issue_date": date(2026, 5, 18),
-            "correlativo": 1,
-            "sign_xml": sign,
-            "send_to_sunat": send,
-        })
+        return self.env["l10n.pe.rc.wizard"].create(
+            {
+                "company_id": self.company.id,
+                "reference_date": date(2026, 5, 17),
+                "issue_date": date(2026, 5, 18),
+                "correlativo": 1,
+                "sign_xml": sign,
+                "send_to_sunat": send,
+            }
+        )
 
     def test_auto_send_calls_sendsummary_when_signed(self):
         """Con sign=True + send=True, debe llamar send_summary y guardar ticket."""
         from unittest.mock import patch
+
         wiz = self._make_wizard(sign=True, send=True)
         # Mockeamos solo el cert + send_summary; el signer real haría fallar
         # por falta de cert. Bypaseamos el firmado mockeando _get_l10n_pe_edi_signer
         # y send_summary independientemente.
         from unittest.mock import MagicMock
+
         fake_signer = MagicMock()
         fake_signer.sign = MagicMock()  # noop
 
-        with patch(
-            "odoo.addons.l10n_pe_edi.models.res_company.ResCompany."
-            "_get_l10n_pe_edi_signer",
-            return_value=fake_signer,
-        ), patch(
-            "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
-            "SunatBillService.send_summary",
-            return_value="ticket-auto-123",
+        with (
+            patch(
+                "odoo.addons.l10n_pe_edi.models.res_company.ResCompany._get_l10n_pe_edi_signer",
+                return_value=fake_signer,
+            ),
+            patch(
+                "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
+                "SunatBillService.send_summary",
+                return_value="ticket-auto-123",
+            ),
         ):
             wiz.action_generate()
 
@@ -218,6 +258,7 @@ class TestRcWizardAutoSend(TransactionCase):
     def test_no_auto_send_when_send_to_sunat_false(self):
         """Con send_to_sunat=False no debe llamar send_summary."""
         from unittest.mock import MagicMock, patch
+
         wiz = self._make_wizard(sign=True, send=False)
         fake_signer = MagicMock()
         fake_signer.sign = MagicMock()
@@ -228,14 +269,16 @@ class TestRcWizardAutoSend(TransactionCase):
             called_send.append(True)
             return "should-not-be-called"
 
-        with patch(
-            "odoo.addons.l10n_pe_edi.models.res_company.ResCompany."
-            "_get_l10n_pe_edi_signer",
-            return_value=fake_signer,
-        ), patch(
-            "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
-            "SunatBillService.send_summary",
-            side_effect=_fail,
+        with (
+            patch(
+                "odoo.addons.l10n_pe_edi.models.res_company.ResCompany._get_l10n_pe_edi_signer",
+                return_value=fake_signer,
+            ),
+            patch(
+                "odoo.addons.l10n_pe_edi_transport_sunat_soap.services.sunat_soap."
+                "SunatBillService.send_summary",
+                side_effect=_fail,
+            ),
         ):
             wiz.action_generate()
 
@@ -247,6 +290,7 @@ class TestRcWizardAutoSend(TransactionCase):
     def test_no_auto_send_when_sign_false(self):
         """Con sign_xml=False el send no se dispara (no hay XML firmado)."""
         from unittest.mock import patch
+
         wiz = self._make_wizard(sign=False, send=True)
         called_send = []
 

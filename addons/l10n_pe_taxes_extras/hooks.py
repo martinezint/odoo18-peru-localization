@@ -14,10 +14,12 @@ def _l10n_pe_taxes_post_init(env):
     Company = env["res.company"]
     # Solo empresas PE con chart 'pe' ya aplicado (las que no lo tienen serán
     # cubiertas por el hook de l10n_pe_coa_pcge2019).
-    pe_companies = Company.search([
-        ("partner_id.country_id.code", "=", "PE"),
-        ("chart_template", "=", "pe"),
-    ])
+    pe_companies = Company.search(
+        [
+            ("partner_id.country_id.code", "=", "PE"),
+            ("chart_template", "=", "pe"),
+        ]
+    )
     for company in pe_companies:
         _logger.info(
             "l10n_pe_taxes_extras: re-aplicando chart 'pe' a %s para cargar nuevos taxes.",

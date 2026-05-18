@@ -10,7 +10,9 @@ class PosSession(models.Model):
     def action_l10n_pe_open_rc_wizard(self):
         """Abre el wizard de RC pre-cargado con la fecha del cierre de sesión."""
         self.ensure_one()
-        reference_date = (self.stop_at or self.start_at).date() if (self.stop_at or self.start_at) else None
+        reference_date = (
+            (self.stop_at or self.start_at).date() if (self.stop_at or self.start_at) else None
+        )
         ctx = {
             "default_company_id": self.company_id.id,
             "default_reference_date": reference_date,

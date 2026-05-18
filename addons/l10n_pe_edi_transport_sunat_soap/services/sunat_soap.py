@@ -21,6 +21,7 @@ Operaciones:
 - sendSummary(fileName, contentFile) → async, devuelve ticket; luego se
   consulta con getStatus(ticket). Usado para RC (resúmenes) y RA (bajas).
 """
+
 from __future__ import annotations
 
 import io
@@ -78,9 +79,7 @@ class SunatBillService:
         endpoint_override: str | None = None,
     ):
         if environment not in ENDPOINTS:
-            raise ValueError(
-                f"environment debe ser 'beta' o 'production', no {environment!r}"
-            )
+            raise ValueError(f"environment debe ser 'beta' o 'production', no {environment!r}")
         self.endpoint = endpoint_override or ENDPOINTS[environment]
         self.username = f"{ruc}{sol_user}"
         self.password = sol_password

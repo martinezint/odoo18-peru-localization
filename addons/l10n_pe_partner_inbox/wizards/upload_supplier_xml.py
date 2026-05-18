@@ -26,7 +26,7 @@ class L10nPeUploadSupplierXml(models.TransientModel):
         string="Crear partner si no existe",
         default=True,
         help="Si el RUC del proveedor no se encuentra, crea un partner nuevo "
-             "como borrador (sin confirmar). Si se desactiva, falla con error.",
+        "como borrador (sin confirmar). Si se desactiva, falla con error.",
     )
 
     def action_parse_and_create(self):
@@ -45,10 +45,9 @@ class L10nPeUploadSupplierXml(models.TransientModel):
 
         parsed = parse_ubl(xml_bytes)
         if not parsed.supplier_ruc:
-            raise UserError(_(
-                "El XML no contiene el RUC del proveedor "
-                "(cac:AccountingSupplierParty)."
-            ))
+            raise UserError(
+                _("El XML no contiene el RUC del proveedor (cac:AccountingSupplierParty).")
+            )
         if not parsed.document_number:
             raise UserError(_("El XML no contiene número de documento (cbc:ID)."))
 
@@ -76,9 +75,10 @@ class L10nPeUploadSupplierXml(models.TransientModel):
         if existing:
             return existing
         if not self.auto_create_partner:
-            raise UserError(_(
-                "El RUC %s no está registrado y la opción 'Crear partner' está desactivada."
-            ) % ruc)
+            raise UserError(
+                _("El RUC %s no está registrado y la opción 'Crear partner' está desactivada.")
+                % ruc
+            )
 
         # Crear partner borrador con datos mínimos del XML
         it_ruc = self.env.ref("l10n_pe.it_RUC", raise_if_not_found=False)
@@ -100,9 +100,11 @@ class L10nPeUploadSupplierXml(models.TransientModel):
     def _resolve_currency(self, code: str):
         currency = self.env["res.currency"].search([("name", "=", code)], limit=1)
         if not currency:
-            currency = self.env["res.currency"].with_context(
-                active_test=False
-            ).search([("name", "=", code)], limit=1)
+            currency = (
+                self.env["res.currency"]
+                .with_context(active_test=False)
+                .search([("name", "=", code)], limit=1)
+            )
             if currency and not currency.active:
                 currency.active = True
         if not currency:
@@ -125,31 +127,39 @@ class L10nPeUploadSupplierXml(models.TransientModel):
 
         Move = self.env["account.move"].with_company(self.env.company)
         line_vals = [self._build_line_vals(line) for line in parsed.lines]
-        move = Move.create({
-            "move_type": move_type,
-            "partner_id": partner.id,
-            "invoice_date": parsed.issue_date,
-            "currency_id": currency.id,
-            "ref": parsed.document_number,
-            "invoice_line_ids": line_vals,
-        })
+        move = Move.create(
+            {
+                "move_type": move_type,
+                "partner_id": partner.id,
+                "invoice_date": parsed.issue_date,
+                "currency_id": currency.id,
+                "ref": parsed.document_number,
+                "invoice_line_ids": line_vals,
+            }
+        )
         return move
 
     def _build_line_vals(self, line):
-        return (0, 0, {
-            "name": line.description or _("Sin descripción"),
-            "quantity": float(line.quantity),
-            "price_unit": float(line.price_unit),
-            "tax_ids": [],  # taxes no se importan en v1 — el contador las añade
-        })
+        return (
+            0,
+            0,
+            {
+                "name": line.description or _("Sin descripción"),
+                "quantity": float(line.quantity),
+                "price_unit": float(line.price_unit),
+                "tax_ids": [],  # taxes no se importan en v1 — el contador las añade
+            },
+        )
 
     # ─── Adjuntar XML al move ──────────────────────────────────────────
 
     def _attach_xml(self, move, xml_bytes):
-        self.env["ir.attachment"].create({
-            "name": self.xml_filename or f"{move.ref or 'invoice'}.xml",
-            "datas": base64.b64encode(xml_bytes),
-            "res_model": "account.move",
-            "res_id": move.id,
-            "mimetype": "application/xml",
-        })
+        self.env["ir.attachment"].create(
+            {
+                "name": self.xml_filename or f"{move.ref or 'invoice'}.xml",
+                "datas": base64.b64encode(xml_bytes),
+                "res_model": "account.move",
+                "res_id": move.id,
+                "mimetype": "application/xml",
+            }
+        )

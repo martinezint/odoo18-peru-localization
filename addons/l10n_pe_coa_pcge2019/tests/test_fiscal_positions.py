@@ -21,10 +21,12 @@ class TestFiscalPositionsPerRegimen(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.pe = cls.env.ref("base.pe")
-        cls.test_company = cls.env["res.company"].create({
-            "name": "Test PE Co (FP tests)",
-            "country_id": cls.pe.id,
-        })
+        cls.test_company = cls.env["res.company"].create(
+            {
+                "name": "Test PE Co (FP tests)",
+                "country_id": cls.pe.id,
+            }
+        )
         cls.env["account.chart.template"].try_loading(
             "pe", company=cls.test_company, install_demo=False
         )
