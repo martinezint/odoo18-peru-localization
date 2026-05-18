@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2026 Marc Martínez & contributors
+    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl-3.0.html)
+-->
+<odoo>
+
+    <record id="view_company_form_l10n_pe_sbs" model="ir.ui.view">
+        <field name="name">res.company.form.l10n.pe.sbs</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="l10n_pe_base_extras.view_company_form_l10n_pe_extras"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_pe_apisnet_token']" position="after">
+                <group string="Tipo de cambio SBS" col="2">
+                    <field name="l10n_pe_sbs_auto_update"/>
+                    <field name="l10n_pe_sbs_rate_type"/>
+                    <field name="l10n_pe_sbs_currency_ids"
+                           widget="many2many_tags"
+                           options="{'no_create': True}"/>
+                    <button name="action_l10n_pe_update_sbs_rates"
+                            type="object"
+                            string="Actualizar ahora desde SBS"
+                            class="btn-primary"
+                            icon="fa-refresh"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
