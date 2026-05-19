@@ -33,6 +33,7 @@ production-ready, mantenidos en abierto.
 | 13 | `l10n_pe_pos_edi`                 | RC + auto-send a SUNAT |
 | 14 | `l10n_pe_reports_pdf`             | QR RS 097-2012 + representación impresa |
 | 15 | `l10n_pe_double_entry_6_9`        | Doble apunte PCGE clase 6 ↔ clase 9 vía 79 (obligatorio SUNAT) |
+| 16 | `l10n_pe_ubigeo`                  | Catálogo UBIGEO INEI (Lima Metropolitana + capitales departamentales) |
 
 ## Flujos end-to-end soportados
 

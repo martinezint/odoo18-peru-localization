@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  UBIGEO semilla — Lima Metropolitana (43 distritos provincia Lima)
+  + capitales de los 24 departamentos peruanos.
+
+  Para cargar los 1,874 distritos completos, importar el CSV oficial
+  INEI vía Settings → Importar → l10n.pe.ubigeo.
+-->
+<odoo noupdate="1">
+
+  <!-- ═══ LIMA / LIMA (provincia 1501) ═══ -->
+  <record id="ubigeo_150101" model="l10n.pe.ubigeo">
+    <field name="code">150101</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Lima (Cercado)</field>
+  </record>
+  <record id="ubigeo_150102" model="l10n.pe.ubigeo">
+    <field name="code">150102</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Ancón</field>
+  </record>
+  <record id="ubigeo_150103" model="l10n.pe.ubigeo">
+    <field name="code">150103</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Ate</field>
+  </record>
+  <record id="ubigeo_150104" model="l10n.pe.ubigeo">
+    <field name="code">150104</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Barranco</field>
+  </record>
+  <record id="ubigeo_150105" model="l10n.pe.ubigeo">
+    <field name="code">150105</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Breña</field>
+  </record>
+  <record id="ubigeo_150106" model="l10n.pe.ubigeo">
+    <field name="code">150106</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Carabayllo</field>
+  </record>
+  <record id="ubigeo_150107" model="l10n.pe.ubigeo">
+    <field name="code">150107</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Chaclacayo</field>
+  </record>
+  <record id="ubigeo_150108" model="l10n.pe.ubigeo">
+    <field name="code">150108</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Chorrillos</field>
+  </record>
+  <record id="ubigeo_150109" model="l10n.pe.ubigeo">
+    <field name="code">150109</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Cieneguilla</field>
+  </record>
+  <record id="ubigeo_150110" model="l10n.pe.ubigeo">
+    <field name="code">150110</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Comas</field>
+  </record>
+  <record id="ubigeo_150111" model="l10n.pe.ubigeo">
+    <field name="code">150111</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">El Agustino</field>
+  </record>
+  <record id="ubigeo_150112" model="l10n.pe.ubigeo">
+    <field name="code">150112</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Independencia</field>
+  </record>
+  <record id="ubigeo_150113" model="l10n.pe.ubigeo">
+    <field name="code">150113</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Jesús María</field>
+  </record>
+  <record id="ubigeo_150114" model="l10n.pe.ubigeo">
+    <field name="code">150114</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">La Molina</field>
+  </record>
+  <record id="ubigeo_150115" model="l10n.pe.ubigeo">
+    <field name="code">150115</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">La Victoria</field>
+  </record>
+  <record id="ubigeo_150116" model="l10n.pe.ubigeo">
+    <field name="code">150116</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Lince</field>
+  </record>
+  <record id="ubigeo_150117" model="l10n.pe.ubigeo">
+    <field name="code">150117</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Los Olivos</field>
+  </record>
+  <record id="ubigeo_150118" model="l10n.pe.ubigeo">
+    <field name="code">150118</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Lurigancho</field>
+  </record>
+  <record id="ubigeo_150119" model="l10n.pe.ubigeo">
+    <field name="code">150119</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Lurín</field>
+  </record>
+  <record id="ubigeo_150120" model="l10n.pe.ubigeo">
+    <field name="code">150120</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Magdalena del Mar</field>
+  </record>
+  <record id="ubigeo_150121" model="l10n.pe.ubigeo">
+    <field name="code">150121</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Pueblo Libre (Magdalena Vieja)</field>
+  </record>
+  <record id="ubigeo_150122" model="l10n.pe.ubigeo">
+    <field name="code">150122</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Miraflores</field>
+  </record>
+  <record id="ubigeo_150123" model="l10n.pe.ubigeo">
+    <field name="code">150123</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Pachacámac</field>
+  </record>
+  <record id="ubigeo_150124" model="l10n.pe.ubigeo">
+    <field name="code">150124</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Pucusana</field>
+  </record>
+  <record id="ubigeo_150125" model="l10n.pe.ubigeo">
+    <field name="code">150125</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Puente Piedra</field>
+  </record>
+  <record id="ubigeo_150126" model="l10n.pe.ubigeo">
+    <field name="code">150126</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Punta Hermosa</field>
+  </record>
+  <record id="ubigeo_150127" model="l10n.pe.ubigeo">
+    <field name="code">150127</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Punta Negra</field>
+  </record>
+  <record id="ubigeo_150128" model="l10n.pe.ubigeo">
+    <field name="code">150128</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Rímac</field>
+  </record>
+  <record id="ubigeo_150129" model="l10n.pe.ubigeo">
+    <field name="code">150129</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Bartolo</field>
+  </record>
+  <record id="ubigeo_150130" model="l10n.pe.ubigeo">
+    <field name="code">150130</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Borja</field>
+  </record>
+  <record id="ubigeo_150131" model="l10n.pe.ubigeo">
+    <field name="code">150131</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Isidro</field>
+  </record>
+  <record id="ubigeo_150132" model="l10n.pe.ubigeo">
+    <field name="code">150132</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Juan de Lurigancho</field>
+  </record>
+  <record id="ubigeo_150133" model="l10n.pe.ubigeo">
+    <field name="code">150133</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Juan de Miraflores</field>
+  </record>
+  <record id="ubigeo_150134" model="l10n.pe.ubigeo">
+    <field name="code">150134</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Luis</field>
+  </record>
+  <record id="ubigeo_150135" model="l10n.pe.ubigeo">
+    <field name="code">150135</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Martín de Porres</field>
+  </record>
+  <record id="ubigeo_150136" model="l10n.pe.ubigeo">
+    <field name="code">150136</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">San Miguel</field>
+  </record>
+  <record id="ubigeo_150137" model="l10n.pe.ubigeo">
+    <field name="code">150137</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Santa Anita</field>
+  </record>
+  <record id="ubigeo_150138" model="l10n.pe.ubigeo">
+    <field name="code">150138</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Santa María del Mar</field>
+  </record>
+  <record id="ubigeo_150139" model="l10n.pe.ubigeo">
+    <field name="code">150139</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Santa Rosa</field>
+  </record>
+  <record id="ubigeo_150140" model="l10n.pe.ubigeo">
+    <field name="code">150140</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Santiago de Surco</field>
+  </record>
+  <record id="ubigeo_150141" model="l10n.pe.ubigeo">
+    <field name="code">150141</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Surquillo</field>
+  </record>
+  <record id="ubigeo_150142" model="l10n.pe.ubigeo">
+    <field name="code">150142</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Villa El Salvador</field>
+  </record>
+  <record id="ubigeo_150143" model="l10n.pe.ubigeo">
+    <field name="code">150143</field>
+    <field name="department">Lima</field>
+    <field name="province">Lima</field>
+    <field name="district">Villa María del Triunfo</field>
+  </record>
+
+  <!-- ═══ Capitales de los 24 departamentos ═══ -->
+  <record id="ubigeo_010101" model="l10n.pe.ubigeo">
+    <field name="code">010101</field>
+    <field name="department">Amazonas</field>
+    <field name="province">Chachapoyas</field>
+    <field name="district">Chachapoyas</field>
+  </record>
+  <record id="ubigeo_020101" model="l10n.pe.ubigeo">
+    <field name="code">020101</field>
+    <field name="department">Áncash</field>
+    <field name="province">Huaraz</field>
+    <field name="district">Huaraz</field>
+  </record>
+  <record id="ubigeo_030101" model="l10n.pe.ubigeo">
+    <field name="code">030101</field>
+    <field name="department">Apurímac</field>
+    <field name="province">Abancay</field>
+    <field name="district">Abancay</field>
+  </record>
+  <record id="ubigeo_040101" model="l10n.pe.ubigeo">
+    <field name="code">040101</field>
+    <field name="department">Arequipa</field>
+    <field name="province">Arequipa</field>
+    <field name="district">Arequipa</field>
+  </record>
+  <record id="ubigeo_050101" model="l10n.pe.ubigeo">
+    <field name="code">050101</field>
+    <field name="department">Ayacucho</field>
+    <field name="province">Huamanga</field>
+    <field name="district">Ayacucho</field>
+  </record>
+  <record id="ubigeo_060101" model="l10n.pe.ubigeo">
+    <field name="code">060101</field>
+    <field name="department">Cajamarca</field>
+    <field name="province">Cajamarca</field>
+    <field name="district">Cajamarca</field>
+  </record>
+  <record id="ubigeo_070101" model="l10n.pe.ubigeo">
+    <field name="code">070101</field>
+    <field name="department">Callao</field>
+    <field name="province">Callao</field>
+    <field name="district">Callao</field>
+  </record>
+  <record id="ubigeo_080101" model="l10n.pe.ubigeo">
+    <field name="code">080101</field>
+    <field name="department">Cusco</field>
+    <field name="province">Cusco</field>
+    <field name="district">Cusco</field>
+  </record>
+  <record id="ubigeo_090101" model="l10n.pe.ubigeo">
+    <field name="code">090101</field>
+    <field name="department">Huancavelica</field>
+    <field name="province">Huancavelica</field>
+    <field name="district">Huancavelica</field>
+  </record>
+  <record id="ubigeo_100101" model="l10n.pe.ubigeo">
+    <field name="code">100101</field>
+    <field name="department">Huánuco</field>
+    <field name="province">Huánuco</field>
+    <field name="district">Huánuco</field>
+  </record>
+  <record id="ubigeo_110101" model="l10n.pe.ubigeo">
+    <field name="code">110101</field>
+    <field name="department">Ica</field>
+    <field name="province">Ica</field>
+    <field name="district">Ica</field>
+  </record>
+  <record id="ubigeo_120101" model="l10n.pe.ubigeo">
+    <field name="code">120101</field>
+    <field name="department">Junín</field>
+    <field name="province">Huancayo</field>
+    <field name="district">Huancayo</field>
+  </record>
+  <record id="ubigeo_130101" model="l10n.pe.ubigeo">
+    <field name="code">130101</field>
+    <field name="department">La Libertad</field>
+    <field name="province">Trujillo</field>
+    <field name="district">Trujillo</field>
+  </record>
+  <record id="ubigeo_140101" model="l10n.pe.ubigeo">
+    <field name="code">140101</field>
+    <field name="department">Lambayeque</field>
+    <field name="province">Chiclayo</field>
+    <field name="district">Chiclayo</field>
+  </record>
+  <record id="ubigeo_160101" model="l10n.pe.ubigeo">
+    <field name="code">160101</field>
+    <field name="department">Loreto</field>
+    <field name="province">Maynas</field>
+    <field name="district">Iquitos</field>
+  </record>
+  <record id="ubigeo_170101" model="l10n.pe.ubigeo">
+    <field name="code">170101</field>
+    <field name="department">Madre de Dios</field>
+    <field name="province">Tambopata</field>
+    <field name="district">Tambopata (Puerto Maldonado)</field>
+  </record>
+  <record id="ubigeo_180101" model="l10n.pe.ubigeo">
+    <field name="code">180101</field>
+    <field name="department">Moquegua</field>
+    <field name="province">Mariscal Nieto</field>
+    <field name="district">Moquegua</field>
+  </record>
+  <record id="ubigeo_190101" model="l10n.pe.ubigeo">
+    <field name="code">190101</field>
+    <field name="department">Pasco</field>
+    <field name="province">Pasco</field>
+    <field name="district">Chaupimarca (Cerro de Pasco)</field>
+  </record>
+  <record id="ubigeo_200101" model="l10n.pe.ubigeo">
+    <field name="code">200101</field>
+    <field name="department">Piura</field>
+    <field name="province">Piura</field>
+    <field name="district">Piura</field>
+  </record>
+  <record id="ubigeo_210101" model="l10n.pe.ubigeo">
+    <field name="code">210101</field>
+    <field name="department">Puno</field>
+    <field name="province">Puno</field>
+    <field name="district">Puno</field>
+  </record>
+  <record id="ubigeo_220101" model="l10n.pe.ubigeo">
+    <field name="code">220101</field>
+    <field name="department">San Martín</field>
+    <field name="province">Moyobamba</field>
+    <field name="district">Moyobamba</field>
+  </record>
+  <record id="ubigeo_230101" model="l10n.pe.ubigeo">
+    <field name="code">230101</field>
+    <field name="department">Tacna</field>
+    <field name="province">Tacna</field>
+    <field name="district">Tacna</field>
+  </record>
+  <record id="ubigeo_240101" model="l10n.pe.ubigeo">
+    <field name="code">240101</field>
+    <field name="department">Tumbes</field>
+    <field name="province">Tumbes</field>
+    <field name="district">Tumbes</field>
+  </record>
+  <record id="ubigeo_250101" model="l10n.pe.ubigeo">
+    <field name="code">250101</field>
+    <field name="department">Ucayali</field>
+    <field name="province">Coronel Portillo</field>
+    <field name="district">Callería (Pucallpa)</field>
+  </record>
+</odoo>

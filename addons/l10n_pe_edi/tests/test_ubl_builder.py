@@ -103,6 +103,15 @@ class TestUblBuilder(TransactionCase):
         self.assertEqual(type_el.text, "01")
         self.assertEqual(type_el.get("listID"), "0101")
 
+    def test_boleta_type_03_emits_correct_code(self):
+        """Reusa la misma Invoice cambiando invoice_type_code → '03' boleta."""
+        inv = _make_minimal_invoice()
+        inv.invoice_type_code = "03"
+        inv.serie_number = "B001-1"
+        root = UblInvoiceBuilder().build(inv)
+        type_el = root.find(f"{{{NS_CBC}}}InvoiceTypeCode")
+        self.assertEqual(type_el.text, "03")
+
     def test_note_with_language_locale_id(self):
         note = self.root.find(f"{{{NS_CBC}}}Note")
         self.assertEqual(note.text, "SON CIENTO DIECIOCHO CON 00/100 SOLES")

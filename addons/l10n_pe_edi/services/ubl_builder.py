@@ -93,11 +93,12 @@ class InvoiceLine:
 
 @dataclass
 class Invoice:
-    """Factura SUNAT 01 — versión mínima para v1."""
+    """Comprobante SUNAT (factura 01 o boleta 03) — UBL 2.1 Invoice-2."""
 
-    serie_number: str  # "F001-1"
+    serie_number: str  # "F001-1" para factura, "B001-1" para boleta
     issue_date: date
     issue_time: time
+    invoice_type_code: str = "01"  # Cat 01: 01=Factura, 03=Boleta venta
     due_date: date | None = None
     operation_type_code: str = "0101"  # Cat 51: 0101 Venta interna
     currency_code: str = "PEN"
@@ -163,7 +164,7 @@ class UblInvoiceBuilder:
         self._cbc(root, "IssueTime", inv.issue_time.isoformat())
         if inv.due_date:
             self._cbc(root, "DueDate", inv.due_date.isoformat())
-        self._cbc(root, "InvoiceTypeCode", "01", listID=inv.operation_type_code)
+        self._cbc(root, "InvoiceTypeCode", inv.invoice_type_code, listID=inv.operation_type_code)
         if inv.note_amount_in_words:
             self._cbc(root, "Note", inv.note_amount_in_words, languageLocaleID="1000")
         self._cbc(root, "DocumentCurrencyCode", inv.currency_code)

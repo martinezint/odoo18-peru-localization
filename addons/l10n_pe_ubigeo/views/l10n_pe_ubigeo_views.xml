@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_l10n_pe_ubigeo_tree" model="ir.ui.view">
+    <field name="name">l10n.pe.ubigeo.tree</field>
+    <field name="model">l10n.pe.ubigeo</field>
+    <field name="arch" type="xml">
+      <list string="UBIGEO INEI">
+        <field name="code"/>
+        <field name="district"/>
+        <field name="province"/>
+        <field name="department"/>
+      </list>
+    </field>
+  </record>
+
+  <record id="view_l10n_pe_ubigeo_form" model="ir.ui.view">
+    <field name="name">l10n.pe.ubigeo.form</field>
+    <field name="model">l10n.pe.ubigeo</field>
+    <field name="arch" type="xml">
+      <form string="UBIGEO">
+        <sheet>
+          <group>
+            <field name="code"/>
+            <field name="department"/>
+            <field name="province"/>
+            <field name="district"/>
+            <field name="active"/>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_l10n_pe_ubigeo_search" model="ir.ui.view">
+    <field name="name">l10n.pe.ubigeo.search</field>
+    <field name="model">l10n.pe.ubigeo</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="code"/>
+        <field name="district"/>
+        <field name="province"/>
+        <field name="department"/>
+        <group expand="0" string="Agrupar por">
+          <filter string="Departamento" name="group_dept" context="{'group_by': 'department'}"/>
+          <filter string="Provincia" name="group_prov" context="{'group_by': 'province'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+  <record id="action_l10n_pe_ubigeo" model="ir.actions.act_window">
+    <field name="name">Catálogo UBIGEO</field>
+    <field name="res_model">l10n.pe.ubigeo</field>
+    <field name="view_mode">list,form</field>
+    <field name="search_view_id" ref="view_l10n_pe_ubigeo_search"/>
+  </record>
+
+  <menuitem
+      id="menu_l10n_pe_ubigeo"
+      name="UBIGEOs (Perú)"
+      parent="base.menu_translation"
+      action="action_l10n_pe_ubigeo"
+      sequence="100"/>
+</odoo>
