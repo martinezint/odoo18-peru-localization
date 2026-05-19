@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_company_l10n_pe_double_entry_form" model="ir.ui.view">
+    <field name="name">res.company.form.l10n_pe_double_entry</field>
+    <field name="model">res.company</field>
+    <field name="inherit_id" ref="base.view_company_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//sheet" position="inside">
+        <group string="Doble apunte PCGE 6↔9 (Perú)">
+          <group>
+            <field name="l10n_pe_auto_double_entry"/>
+            <field name="l10n_pe_default_destination_type"/>
+            <field name="l10n_pe_transfer_account_id"/>
+          </group>
+          <group string="Cuentas destino por función (clase 9)">
+            <field name="l10n_pe_dest_admin_account_id"/>
+            <field name="l10n_pe_dest_sales_account_id"/>
+            <field name="l10n_pe_dest_production_account_id"/>
+            <field name="l10n_pe_dest_distribution_account_id"/>
+          </group>
+        </group>
+      </xpath>
+    </field>
+  </record>
+</odoo>

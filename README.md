@@ -32,6 +32,7 @@ production-ready, mantenidos en abierto.
 | 12 | `l10n_pe_ple`                     | PLE 5.x: Ventas 14.1, Compras 8.1, Diario 5.1 |
 | 13 | `l10n_pe_pos_edi`                 | RC + auto-send a SUNAT |
 | 14 | `l10n_pe_reports_pdf`             | QR RS 097-2012 + representación impresa |
+| 15 | `l10n_pe_double_entry_6_9`        | Doble apunte PCGE clase 6 ↔ clase 9 vía 79 (obligatorio SUNAT) |
 
 ## Flujos end-to-end soportados
 
@@ -41,6 +42,7 @@ production-ready, mantenidos en abierto.
 - **Retenciones / Percepciones**: crear documento → líneas con facturas origen → UBL firmado.
 - **SIRE**: solicitar propuesta → polling ticket → descarga TXT.
 - **PLE**: wizard por libro + período → TXT con naming SUNAT.
+- **Doble apunte 6↔9**: al postear factura de gasto → genera asiento contrapartida en clase 9 (función) + 79 (puente), automático o batch.
 
 ## Quick start
 
