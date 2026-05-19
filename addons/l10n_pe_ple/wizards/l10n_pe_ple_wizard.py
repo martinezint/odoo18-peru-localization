@@ -11,11 +11,17 @@ from ..services.ple_3_1_inventario import Ple3_1Generator
 from ..services.ple_5_1_diario import Ple5_1Generator
 from ..services.ple_6_1_mayor import Ple6_1Generator
 from ..services.ple_8_1_compras import Ple8_1Generator
+from ..services.ple_9_1_activos import Ple9_1Generator
+from ..services.ple_12_1_inv_fisico import Ple12_1Generator
+from ..services.ple_13_1_inv_valorizado import Ple13_1Generator
 from ..services.ple_14_1_ventas import Ple14_1Generator
 from ..services.ple_filename import (
+    LIBRO_ACTIVOS_9_1,
     LIBRO_COMPRAS_8_1,
     LIBRO_DIARIO_5_1,
     LIBRO_INV_BAL_3_1,
+    LIBRO_INV_FISICO_12_1,
+    LIBRO_INV_VALORIZADO_13_1,
     LIBRO_MAYOR_6_1,
     LIBRO_VENTAS_14_1,
     PERIODICITY_ANNUAL,
@@ -28,6 +34,9 @@ LIBRO_SELECTION = [
     ("5_1", "5.1 — Libro Diario"),
     ("6_1", "6.1 — Libro Mayor"),
     ("3_1", "3.1 — Inventarios y Balances (anual)"),
+    ("12_1", "12.1 — Inventario Permanente Físico (unidades)"),
+    ("13_1", "13.1 — Inventario Permanente Valorizado"),
+    ("9_1", "9.1 — Registro de Activos Fijos (anual)"),
 ]
 
 
@@ -38,6 +47,9 @@ _LIBRO_DISPATCH = {
     "5_1": (Ple5_1Generator, LIBRO_DIARIO_5_1, "monthly"),
     "6_1": (Ple6_1Generator, LIBRO_MAYOR_6_1, "monthly"),
     "3_1": (Ple3_1Generator, LIBRO_INV_BAL_3_1, PERIODICITY_ANNUAL),
+    "12_1": (Ple12_1Generator, LIBRO_INV_FISICO_12_1, "monthly"),
+    "13_1": (Ple13_1Generator, LIBRO_INV_VALORIZADO_13_1, "monthly"),
+    "9_1": (Ple9_1Generator, LIBRO_ACTIVOS_9_1, PERIODICITY_ANNUAL),
 }
 
 

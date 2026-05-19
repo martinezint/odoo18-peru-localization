@@ -7,6 +7,9 @@ from . import (
     test_ple_5_1,
     test_ple_6_1,
     test_ple_8_1,
+    test_ple_9_1,
+    test_ple_12_1,
+    test_ple_13_1,
     test_ple_14_1,
     test_wizard,
 )
